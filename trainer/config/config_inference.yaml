@@ -1,0 +1,59 @@
+OUTPUT_DIR: inference_DepressionAnalysis
+SAVE_CONFIG_NAME: config_inference_DepressionAnalysis.yaml
+CKPTS_DIR: E:\myworkspace\DepressionEstimation\models\Visual_ConvLSTM\model_weights  # TODO
+TYPE: V+Conv2D-BiLSTM+PHQ-Subscores  # TODO
+MANUAL_SEED: 1
+LOG_TITLE: Depression Detection with visual features (key points & gaze direction), Conv2D-BiLSTM, PHQ-Subscores # TODO
+
+DATA:
+  TRAIN_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\train\clipped_data\
+  VALIDATION_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\train\original_data\
+  TEST_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\test\clipped_data\
+  USE_MEL_SPECTROGRAM: False
+  VISUAL_WITH_GAZE: True
+  PADDING:
+  RESCALE_SIZE:
+  CROP_SIZE:
+  BATCH_SIZE: 500  # TODO
+  NUM_WORKERS: 0  # TODO
+
+MODEL:
+  PHQ_THRESHOLD: 10
+  EPOCHS: 1
+  WEIGHTS:
+    TYPE: new        # ['new', 'last', 'absolute_path', others custom_type]
+    DATE:
+    PATH: model_weights
+    NAME: V+Conv2D-BiLSTM+PHQ-Subscores+improve_2024-09-11_081747_f1_score-0.8696.pt
+    CUSTOM_ABSOLUTE_PATH: 
+    INCLUDED: ['visual_net', 'evaluator']
+  VISUAL_NET:
+    INPUT_DIM: 3
+    CONV_HIDDEN: 256
+    LSTM_HIDDEN: 256
+    OUTPUT_DIM: 256
+    NUM_LAYERS: 4
+    ACTIVATION: relu  # ['sigmoid', 'softmax', 'global', else]
+    NORM: bn          # ['bn', 'wn']: nn.BatchNorm1d, nn.utils.weight_norm
+    DROPOUT: 0.6
+  EVALUATOR:
+    PREDICT_TYPE: phq-subscores    # ['phq-subscores', 'phq-score', 'phq-binary']
+    INPUT_FEATURE_DIM: 256
+    CLASSES_RESOLUTION: 32 
+    N_CLASSES: 4
+    N_SUBSCORES: 8
+    STD: 5
+  CRITERION:
+    USE_SOFT_LABEL: True
+    USE_WEIGHTS: True
+  OPTIMIZER:
+    LR: 1e-4
+    WEIGHT_DECAY: 1e-5
+    USE_SAM: True
+  SCHEDULER:
+    STEP_SIZE: 10
+    GAMMA: 0.90
+
+    
+
+
