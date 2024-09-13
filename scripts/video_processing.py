@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from moviepy.editor import VideoFileClip
@@ -22,7 +23,7 @@ def subclip(input_video_path, output_video_path, fps=30, start=0, end=0):
     sub_video = video.subclip(start, end)
 
     # 保存裁剪后的视频
-    sub_video.write_videofile(output_video_path, fps=fps, codec="libx264")
+    sub_video.write_videofile(output_video_path, fps=fps, codec="libx264", audio=False)
 
 
 def clip_video(input_video_path, output_video_path, fps=30, role="patient"):
@@ -48,12 +49,13 @@ def clip_video(input_video_path, output_video_path, fps=30, role="patient"):
         half_video = video.crop(x1=width / 2, y1=0, x2=width, y2=height)
 
     # 保存裁剪后的视频
-    half_video.write_videofile(output_video_path, fps=fps, codec="libx264")
+    half_video.write_videofile(output_video_path, fps=fps, codec="libx264", audio=False)
 
 
 def batch_clip_videos(
     input_directory, output_directory, extension="mp4", role="patient"
 ):
+    os.makedirs(output_directory, exist_ok=True)
     files = get_files_by_ext(input_directory, extension)
     print(f"files:{files}")
     for file_path in files:
@@ -61,33 +63,42 @@ def batch_clip_videos(
         clip_video(file_path.as_posix(), output_video_path.as_posix(), role=role)
 
 
-def batch_subclip_videos(input_directory, output_directory, extension="mp4"):
+def batch_subclip_videos(input_directory, output_directory, extension="mp4", start=60, end=240):
+    os.makedirs(output_directory, exist_ok=True)
     files = get_files_by_ext(input_directory, extension)
     print(f"files:{files}")
     for file_path in files:
         output_video_path = Path(output_directory) / file_path.name
         subclip(
-            file_path.as_posix(), output_video_path.as_posix(), fps=30, start=60, end=80
+            file_path.as_posix(), output_video_path.as_posix(), fps=30, start=start, end=end
         )
 
 
 if __name__ == "__main__":
     input_file = "10.mp4"
     output_file = "10_clip.mp4"
-    # clip_video(input_video=input_file, output_video=output_file)
+    # clip_video(input_file, output_file)
 
-    input_directory = r"E:\myworkspace\hxq_ade\data\hxq\videos_raw"
-    output_directory = r"E:\myworkspace\hxq_ade\data\hxq\videos_clip"
-    output_directory_doctor = r"E:\myworkspace\hxq_ade\datasets\hxq\videos_clip_doctor"
-    # batch_clip_videos(input_directory, output_directory)
-    # batch_clip_videos(input_directory, output_directory_doctor, role="doctor")
+    input_directory = r"E:\myworkspace\hxq_ade\data\hxq\video"
+
+    subclip_directory = (
+            r"E:\myworkspace\hxq_ade\data\hxq\video_subclip"
+        )
+
+    # batch_subclip_videos(input_directory, subclip_directory,  start=60, end=180)
+
+    output_directory_patient = r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_patient"
+    output_directory_doctor = r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_doctor"
+
+    batch_clip_videos(subclip_directory, output_directory_patient)
+    batch_clip_videos(subclip_directory, output_directory_doctor, role="doctor")
 
     output_directory_subclip = (
-        r"E:\myworkspace\hxq_ade\datasets\hxq\videos_clip_subclip"
+        r"E:\myworkspace\hxq_ade\data\hxq\videos_clip_subclip"
     )
-    batch_subclip_videos(output_directory, output_directory_subclip)
+    # batch_subclip_videos(output_directory, output_directory_subclip)
 
     output_directory_subclip_doctor = (
-        r"E:\myworkspace\hxq_ade\datasets\hxq\videos_clip_subclip_doctor"
+        r"E:\myworkspace\hxq_ade\data\hxq\videos_clip_subclip_doctor"
     )
-    batch_subclip_videos(output_directory_doctor, output_directory_subclip_doctor)
+    # batch_subclip_videos(output_directory_doctor, output_directory_subclip_doctor)
