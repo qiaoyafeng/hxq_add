@@ -104,12 +104,11 @@ def get_dataloaders(data_config):
                 visual_with_gaze=data_config["VISUAL_WITH_GAZE"],
                 transform=transforms.Compose([ToTensor(mode)]),
             )  # Rescale(data_config['RESCALE_SIZE']), Padding(data_config['PADDING']) + Augmentation TODO !!!
-            sampler = get_sampler_phq_score(dataset.phq_score_gt)
             dataloaders[mode] = DataLoader(
                 dataset,
                 batch_size=data_config["BATCH_SIZE"],
+                shuffle=True,
                 num_workers=data_config["NUM_WORKERS"],
-                sampler=sampler,
             )
 
     return dataloaders

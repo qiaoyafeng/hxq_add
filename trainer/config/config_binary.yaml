@@ -6,15 +6,15 @@ MANUAL_SEED: 1
 LOG_TITLE: Depression Detection with visual features (key points & gaze direction), Conv2D-BiLSTM, PHQ-Binary, CrossEntropy with weights, ASAM # TODO
 
 DATA:
-  TRAIN_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\train\clipped_data\
-  VALIDATION_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\train\original_data\
-  TEST_ROOT_DIR: E:\myworkspace\DepressionEstimation\daic_woz_preprocessing\daic_woz_dataset\DAIC_WOZ-generated_database_V2\test\clipped_data\
+  TRAIN_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
+  VALIDATION_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
+  TEST_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
   USE_MEL_SPECTROGRAM: False
   VISUAL_WITH_GAZE: True
   PADDING:
   RESCALE_SIZE:
   CROP_SIZE:
-  BATCH_SIZE: 500  # TODO
+  BATCH_SIZE: 50  # TODO
   NUM_WORKERS: 0  # TODO
 
 MODEL:

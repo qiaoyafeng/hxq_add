@@ -17,9 +17,23 @@ from scipy import stats
 
 # local functions
 from models.bypass_bn import enable_running_stats, disable_running_stats
-from trainer.utils import get_optimizer_scheduler, log_and_print, get_gt, get_dataloaders, get_models, get_logger, \
-    init_seed, find_last_ckpts, standard_confusion_matrix, get_classification_scores, get_accuracy, compute_score, \
-    compute_loss, get_criterion, get_crossentropy_weights
+from trainer.utils import (
+    get_optimizer_scheduler,
+    log_and_print,
+    get_gt,
+    get_dataloaders,
+    get_models,
+    get_logger,
+    init_seed,
+    find_last_ckpts,
+    standard_confusion_matrix,
+    get_classification_scores,
+    get_accuracy,
+    compute_score,
+    compute_loss,
+    get_criterion,
+    get_crossentropy_weights,
+)
 
 
 def main(
@@ -89,12 +103,15 @@ def main(
             batches_start_time = time.time()
 
             for data in tqdm(dataloaders[mode]):
-                batch_size = data["ID"].size(0)
+                print(
+                    f"data ID: {data['ID']}, data phq_binary_gt: {data['phq_binary_gt']}"
+                )
+                batch_size = len(data["ID"])
 
                 # store ground truth
-                phq_score_gt.extend(
-                    data["phq_score_gt"].numpy().astype(float)
-                )  # 1D list
+                # phq_score_gt.extend(
+                #     data["phq_score_gt"].numpy().astype(float)
+                # )  # 1D list
                 phq_binary_gt.extend(
                     data["phq_binary_gt"].numpy().astype(float)
                 )  # 1D list
@@ -435,7 +452,7 @@ if __name__ == "__main__":
         type=bool,
         help="if set true, save the best model",
         required=False,
-        default=False,
+        default=True,
     )
     args = parser.parse_args()
 

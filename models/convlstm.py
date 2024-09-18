@@ -291,7 +291,7 @@ class ConvLSTMVisual(nn.Module):
         self.conv = ConvBlock2d(
             in_channels=input_dim,
             out_channels=conv_hidden,
-            kernel=(72, 3),
+            kernel=(70, 3),
             stride=(1, 1),
             pad=(0, 1),
             normalisation="bn",
