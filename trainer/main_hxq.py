@@ -123,7 +123,9 @@ def main(
                     # get facial visual feature with Deep Visual Net'
                     # input shape for visual_net must be (B, C, F, T) = (batch_size, channels, features, time series)
                     B, T, F, C = input["visual"].shape
+                    # print(f"input visual shape: {input['visual'].shape}")
                     visual_input = input["visual"].permute(0, 3, 2, 1).contiguous()
+                    # print(f"update input visual shape: {visual_input.shape}")
                     visual_features = visual_net(
                         visual_input.to(args.device)
                     )  # output dim: [B, visual net output dim]

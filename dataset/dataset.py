@@ -82,13 +82,21 @@ class DepressionDataset(Dataset):
         if self.visual_with_gaze:
             fkps_path = os.path.join(self.root_dir, "facial_keypoints")
             gaze_path = os.path.join(self.root_dir, "gaze_vectors")
+            aus_path = os.path.join(self.root_dir, "action_units")
+            pose_path = os.path.join(self.root_dir, "position_rotation")
 
             # load and create final visual feature
             fkps_file = np.sort(os.listdir(fkps_path))[idx]
             gaze_file = np.sort(os.listdir(gaze_path))[idx]
+            # aus_file = np.sort(os.listdir(aus_path))[idx]
+            # pose_file = np.sort(os.listdir(pose_path))[idx]
             fkps = np.load(os.path.join(fkps_path, fkps_file))
             gaze = np.load(os.path.join(gaze_path, gaze_file))
+            # aus = np.load(os.path.join(aus_path, aus_file))
+            # pose = np.load(os.path.join(pose_path, pose_file))
+            # print(f"DepressionDataset: {fkps.shape, gaze.shape, aus.shape, pose.shape}")
             visual = np.concatenate((fkps, gaze), axis=1)
+            # visual = np.concatenate((fkps, gaze, pose), axis=1)
         else:
             fkps_path = os.path.join(self.root_dir, "facial_keypoints")
             # load and create final visual feature

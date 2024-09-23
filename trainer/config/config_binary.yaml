@@ -19,7 +19,7 @@ DATA:
 
 MODEL:
   PHQ_THRESHOLD: 10
-  EPOCHS: 50
+  EPOCHS: 500
   WEIGHTS:
     TYPE: new        # ['new', 'last', 'absolute_path', others custom_type]
     DATE:
