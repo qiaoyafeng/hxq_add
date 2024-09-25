@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import numpy as np
@@ -18,8 +19,9 @@ class DetectService:
     async def update_batch_feature(self, feature_files, batch_file):
         df_list = []
         for csv_file in feature_files:
-            df = pd.read_csv(csv_file)
-            df_list.append(df)
+            if os.path.exists(csv_file):
+                df = pd.read_csv(csv_file)
+                df_list.append(df)
         combined_df = pd.concat(df_list, ignore_index=True)
         combined_df.to_csv(batch_file, mode="a", header=False, index=False)
         return pd.read_csv(batch_file, header=None)
@@ -39,6 +41,15 @@ class DetectService:
         fkps, gaze = await self.inference_service.get_visual_data(batch_feature)
         visual_input = np.concatenate((fkps, gaze), axis=1)
         print(f"visual_input shape: {visual_input.shape}")
+        # 为了适应视频训练图片的输入参数，填充至1800的时长 0填充
+        # visual_input = await self.inference_service.visual_padding(visual_input)
+        # 重复填充图片特征到1800的时长
+        visual_input = np.resize(
+            visual_input,
+            (1800, visual_input.shape[1], visual_input.shape[2]),
+        )
+
+        # 为了支持模型的输入的batch，重复添加一组数据
         visual_input = np.resize(
             visual_input,
             (2, visual_input.shape[0], visual_input.shape[1], visual_input.shape[2]),

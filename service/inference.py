@@ -32,6 +32,7 @@ class InferenceService:
         self.weights_path = weights_path
         self.checkpoint = torch.load(weights_path)
         self.visual_net.load_state_dict(self.checkpoint["visual_net"], strict=False)
+        self.evaluator.load_state_dict(self.checkpoint['evaluator'], strict=False)
         self.visual_net.eval()
         self.evaluator.eval()
         torch.set_grad_enabled(False)
@@ -82,13 +83,25 @@ class InferenceService:
         fkps = self.load_keypoints(all_feature)
         return fkps, gaze
 
+    async def visual_padding(self, data, pad_size=1800):
+        if data.shape[0] != pad_size:
+            size = tuple()
+            size = size + (pad_size,) + data.shape[1:]
+            padded_data = np.zeros(size)
+            padded_data[: data.shape[0]] = data
+        else:
+            padded_data = data
+
+        return padded_data
+
     async def visual_inference(self, visual_input):
         visual_input = torch.from_numpy(visual_input).type(torch.FloatTensor)
         print(f"visual_inference visual_input shape: {visual_input.shape}")
         visual_input = visual_input.permute(0, 3, 2, 1).contiguous()
         print(f"visual_inference visual_input permute shape: {visual_input.shape}")
-        visual_features = self.visual_net(visual_input)
-        predictions = self.evaluator(visual_features)
+        with torch.no_grad():
+            visual_features = self.visual_net(visual_input)
+            predictions = self.evaluator(visual_features)
         print(f"visual_inference predictions: {predictions}")
         depressed_index = predictions[0][1].item()
         score_pred = predictions.argmax(dim=-1)
@@ -98,7 +111,7 @@ class InferenceService:
         return {
             "depressed_id": binary_pred,
             "depressed_state": DEPRESSED_STATE_DICT[binary_pred],
-            "depressed_index": depressed_index
+            "depressed_index": depressed_index,
         }
 
 
