@@ -59,7 +59,11 @@ def batch_clip_videos(
     files = get_files_by_ext(input_directory, extension)
     print(f"files:{files}")
     for file_path in files:
-        output_video_path = Path(output_directory) / file_path.name
+        if role != "patient":
+            file_name = f"{file_path.stem}_normal{file_path.suffix}"
+        else:
+            file_name = file_path.name
+        output_video_path = Path(output_directory) / file_name
         clip_video(file_path.as_posix(), output_video_path.as_posix(), role=role)
 
 
