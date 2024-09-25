@@ -6,7 +6,7 @@ from moviepy.editor import VideoFileClip
 from common.utils import get_files_by_ext
 
 
-def subclip(input_video_path, output_video_path, fps=30, start=0, end=0):
+def subclip(input_video_path, output_video_path, fps=30, start=0, end=0, is_auto=False):
     """截切视频片段"""
 
     # 加载视频文件
@@ -15,10 +15,14 @@ def subclip(input_video_path, output_video_path, fps=30, start=0, end=0):
     # 获取视频的宽度和高度
     width, height = video.size
     duration = video.duration
-    if start > duration:
-        start = 0
-    if end > duration or end <= 0:
-        end = duration
+    if is_auto:
+        start, end = int(duration * 0.1), int(duration * 0.9)
+        fps = video.fps
+    else:
+        if start > duration:
+            start = 0
+        if end > duration or end <= 0:
+            end = duration
 
     sub_video = video.subclip(start, end)
 
@@ -67,14 +71,14 @@ def batch_clip_videos(
         clip_video(file_path.as_posix(), output_video_path.as_posix(), role=role)
 
 
-def batch_subclip_videos(input_directory, output_directory, extension="mp4", start=60, end=240):
+def batch_subclip_videos(input_directory, output_directory, extension="mp4", start=60, end=240, is_auto=False):
     os.makedirs(output_directory, exist_ok=True)
     files = get_files_by_ext(input_directory, extension)
     print(f"files:{files}")
     for file_path in files:
         output_video_path = Path(output_directory) / file_path.name
         subclip(
-            file_path.as_posix(), output_video_path.as_posix(), fps=30, start=start, end=end
+            file_path.as_posix(), output_video_path.as_posix(), fps=30, start=start, end=end, is_auto=is_auto
         )
 
 
@@ -89,7 +93,7 @@ if __name__ == "__main__":
             r"E:\myworkspace\hxq_ade\data\hxq\video_subclip"
         )
 
-    # batch_subclip_videos(input_directory, subclip_directory,  start=60, end=180)
+    batch_subclip_videos(input_directory, subclip_directory,  start=60, end=180, is_auto=True)
 
     output_directory_patient = r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_patient"
     output_directory_doctor = r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_doctor"
