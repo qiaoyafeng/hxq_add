@@ -21,10 +21,10 @@ class FileService:
         return local_url, file_path, file_name
 
     # 上传文件
-    async def uploadfile(self, file: UploadFile):
+    async def uploadfile(self, file: UploadFile, dir_path=None):
         suffix = file.filename.split(".")[-1]
         file_name = f"{uuid.uuid4().hex}.{suffix}"
-        file_path = f"{TEMP_PATH}/{file_name}"
+        file_path = f"{dir_path}/{file_name}" if dir_path else f"{TEMP_PATH}/{file_name}"
         local_url = f"{settings.BASE_DOMAIN}/get_file/{file_name}"
         with open(file_path, "wb") as f:
             f.write(await file.read())

@@ -84,6 +84,33 @@ def extract_visual_feature(video_path):
         print(e.output)
 
 
+def extract_visual_feature_by_images(image_paths: list, out_dir):
+    print(f"extract_visual_feature_by_images: {image_paths} ......")
+
+    if os.name == "nt":
+        feature_extraction_command = r"D:\Programs\OpenFace_2.2.0_win_x64\FaceLandmarkImg.exe"
+    else:
+        feature_extraction_command = "FaceLandmarkImg"
+
+    image_args = []
+    for image_path in image_paths:
+        image_args.append("-f")
+        image_args.append(image_path)
+
+    feature_args = ["-3Dfp", "-pose", "-aus", "-gaze"]
+    out_dir_args = ["-out_dir", out_dir]
+
+    args = image_args + feature_args + out_dir_args
+
+    try:
+        result = subprocess.run([feature_extraction_command] + args, check=True, capture_output=True, text=True)
+        # 打印输出结果
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
+        print(e.output)
+
+
 def replace_special_character(raw_str):
     update_str = (
         raw_str.replace("\n", "。")

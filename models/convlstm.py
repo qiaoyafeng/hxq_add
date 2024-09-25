@@ -296,7 +296,7 @@ class ConvLSTMVisual(nn.Module):
             pad=(0, 1),
             normalisation="bn",
         )
-        self.pool = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
+        self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
         self.drop = nn.Dropout(dropout)
         self.lstm = nn.LSTM(
             input_size=conv_hidden,

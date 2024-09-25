@@ -34,7 +34,7 @@ MODEL:
     OUTPUT_DIM: 256
     NUM_LAYERS: 4
     ACTIVATION: relu  # ['sigmoid', 'softmax', 'global', else]
-    NORM: bn          # ['bn', 'wn']: nn.BatchNorm1d, nn.utils.weight_norm
+    NORM: wn          # ['bn', 'wn']: nn.BatchNorm1d, nn.utils.weight_norm
     DROPOUT: 0.5
   EVALUATOR:
     PREDICT_TYPE: phq-binary    # ['phq-subscores', 'phq-score', 'phq-binary']
