@@ -16,9 +16,9 @@ best_loss = 1
 current_loss = 1
 
 # 定义CNN模型
-class SimpleCNN(nn.Module):
+class MultiClassNet(nn.Module):
     def __init__(self):
-        super(SimpleCNN, self).__init__()
+        super(MultiClassNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.fc1 = nn.Linear(64 * 7 * 7, 128)
@@ -122,8 +122,8 @@ file_paths, labels = get_data_file_label_list()
 print(f"file_paths: {file_paths}, labels: {labels}")
 
 
-batch_size = 20
-num_epochs = 100
+batch_size = 50
+num_epochs = 50
 learning_rate = 0.001
 model_save_path = "cnn_model.pth"
 
@@ -139,20 +139,20 @@ transform = transforms.Compose(
 dataset = CustomDataset(file_paths, labels)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-model = SimpleCNN()
+model = MultiClassNet()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # 训练模型
-train_model(model, dataloader, criterion, optimizer, num_epochs)
+# train_model(model, dataloader, criterion, optimizer, num_epochs)
 
 
 
 # 保存训练好的模型
-# save_model(model, model_save_path)
+save_model(model, model_save_path)
 
 # 加载模型进行推理
-loaded_model = SimpleCNN()
+loaded_model = MultiClassNet()
 load_model(loaded_model, model_save_path)
 
 

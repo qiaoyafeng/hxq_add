@@ -127,6 +127,7 @@ async def image_detect(
 async def image_batch_detect(
     batch_no: str = Form(),
     files: list[UploadFile] = File(description="Multiple images as UploadFile"),
+    is_multi_class: int = 0,
 ):
     image_paths = []
     print(f"batch_no: {batch_no}")
@@ -136,7 +137,7 @@ async def image_batch_detect(
         url, path, name = await file_api.uploadfile(image, dir_path)
         image_paths.append(path)
 
-    detect_dict = await detect_api.image_detect(image_paths, batch_no)
+    detect_dict = await detect_api.image_detect(image_paths, batch_no, is_multi_class=is_multi_class)
     return build_resp(0, {"detect": detect_dict})
 
 

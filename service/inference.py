@@ -5,17 +5,18 @@ import numpy as np
 import pandas as pd
 import torch
 
-from common.constants import DEPRESSED_STATE_DICT
+from common.constants import DEPRESSED_STATE_DICT, ALL_LABELS_DICT, ALL_LABELS_DESC_DICT
 from config import Config
 
 from models.convlstm import ConvLSTMVisual
 from models.evaluator import Evaluator
+from models.multi_classification import MultiClassNet
 
 TEMP_PATH = Config.get_temp_path()
 
 
 class InferenceService:
-    def __init__(self, weights_path):
+    def __init__(self, weights_path, multi_class_weights_path):
         self.visual_net = ConvLSTMVisual(
             input_dim=3,
             output_dim=256,
@@ -37,6 +38,10 @@ class InferenceService:
         self.visual_net.eval()
         self.evaluator.eval()
         torch.set_grad_enabled(False)
+
+        self.multi_class_net = MultiClassNet()
+        self.multi_class_net.load_state_dict(torch.load(multi_class_weights_path))
+        self.multi_class_net.eval()
 
     def pre_check(self, data_df):
         data_df = data_df.apply(pd.to_numeric, errors="coerce")
@@ -115,7 +120,30 @@ class InferenceService:
             "depressed_index": depressed_index,
         }
 
+    async def multi_class_inference(self, input_data):
+        inverted_labels_dict = {value: key for key, value in ALL_LABELS_DICT.items()}
+        with torch.no_grad():
+            predictions = self.multi_class_net(input_data)
+            _, predicted = torch.max(predictions, 1)
+            print(f"infer: output: {predictions}, {_, predicted}")
+
+            label_id = int(predicted)
+            state = inverted_labels_dict[label_id]
+            description = ALL_LABELS_DESC_DICT[state]
+
+            return {
+                "index": label_id,
+                "state": state,
+                "description": description,
+            }
+
+        return {
+            "state": "normal",
+            "index": 0,
+        }
+
 
 inference_service = InferenceService(
-    weights_path="weights/V+Conv2D-BiLSTM+PHQ-Binary_2024-09-23_105353_acc-82.3529.pt"
+    weights_path="weights/V+Conv2D-BiLSTM+PHQ-Binary_2024-09-23_105353_acc-82.3529.pt",
+    multi_class_weights_path="weights/cnn_model.pth",
 )

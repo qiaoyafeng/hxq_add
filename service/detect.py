@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import torch
 
 from config import Config
 from service.inference import inference_service
@@ -55,6 +56,32 @@ class DetectService:
             (2, visual_input.shape[0], visual_input.shape[1], visual_input.shape[2]),
         )
         detect_dict = await self.inference_service.visual_inference(visual_input)
+        return detect_dict
+
+    async def multi_class_detect(self, image_paths, batch_no):
+        feature_files = await self.feature_extraction_by_images(image_paths)
+        batch_dir = Path(f"{TEMP_PATH}/img/{batch_no}")
+        batch_file = batch_dir / "batch_feature.csv"
+        batch_feature = await self.update_batch_feature(feature_files, batch_file)
+        data = pd.read_csv(batch_file)
+
+        def padding(data, pad_size=120):
+            if data.shape[0] < pad_size:
+                size = tuple()
+                size = size + (pad_size,) + data.shape[1:]
+                padded_data = np.zeros(size)
+                padded_data[: data.shape[0]] = data
+            else:
+                padded_data = data[:pad_size]
+            return padded_data
+
+        data = padding(data.iloc[:, 2:30], pad_size=28)
+        print(f"data shape: {data.shape}")
+        features = np.array(data, np.float32)
+        print(f"features: {features.shape}")
+        features = torch.tensor(features).view(1, 28, 28).unsqueeze(0)
+
+        detect_dict = await self.inference_service.multi_class_inference(features)
         return detect_dict
 
 
