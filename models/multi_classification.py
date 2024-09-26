@@ -101,7 +101,7 @@ print(f"file_paths: {file_paths}, labels: {labels}")
 
 
 batch_size = 5
-num_epochs = 10
+num_epochs = 100
 learning_rate = 0.001
 model_save_path = "cnn_model.pth"
 
