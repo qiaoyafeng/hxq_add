@@ -9,6 +9,12 @@ import numpy as np
 from torchvision import transforms
 
 
+# 检查CUDA是否可用
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+best_loss = 1
+current_loss = 1
+
 # 定义CNN模型
 class SimpleCNN(nn.Module):
     def __init__(self):
@@ -64,8 +70,20 @@ class CustomDataset(Dataset):
         return features, label
 
 
+# 保存模型
+def save_model(model, path):
+    torch.save(model.state_dict(), path)
+
+
+# 加载模型
+def load_model(model, path):
+    model.load_state_dict(torch.load(path))
+    model.eval()
+
+
 # 训练函数
 def train_model(model, dataloader, criterion, optimizer, num_epochs=10):
+    global best_loss
     for epoch in range(num_epochs):
         model.train()
         for inputs, labels in dataloader:
@@ -75,6 +93,10 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=10):
             loss.backward()
             optimizer.step()
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
+        epoch_loss = loss.item()
+        if loss.item() < best_loss:
+            save_model(model, f"cnn_model_{epoch_loss}.pth")
+            best_loss = epoch_loss
 
 
 def get_data_file_label_list():
@@ -100,7 +122,7 @@ file_paths, labels = get_data_file_label_list()
 print(f"file_paths: {file_paths}, labels: {labels}")
 
 
-batch_size = 5
+batch_size = 20
 num_epochs = 100
 learning_rate = 0.001
 model_save_path = "cnn_model.pth"
@@ -121,22 +143,13 @@ model = SimpleCNN()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+# 训练模型
 train_model(model, dataloader, criterion, optimizer, num_epochs)
 
 
-# 保存模型
-def save_model(model, path):
-    torch.save(model.state_dict(), path)
-
-
-# 加载模型
-def load_model(model, path):
-    model.load_state_dict(torch.load(path))
-    model.eval()
-
 
 # 保存训练好的模型
-save_model(model, model_save_path)
+# save_model(model, model_save_path)
 
 # 加载模型进行推理
 loaded_model = SimpleCNN()
@@ -152,8 +165,14 @@ def infer(model, input_data):
         return predicted
 
 
-# 示例推理
-test_csv = "E:\myworkspace\hxq_ade\data\hxq\multi_class\F32\_UCetHaSH29GQYWVB-Mk48_c8f620d5-0835-44a2-875e-751d8f65d24b_1705392686557.csv"
+# 示例推理 all_labels_dict = {"normal": 0, "F20": 1, "F31": 2, "F32": 3, "F41": 4, "F42": 5}
+normal_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\normal\_SoX60mKmr9joMfcOT2El8_EC71BFD2-D846-49B6-BA09-137B40DC09A2_1709041923756_doctor.csv"
+f20_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
+f31_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
+f32_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F32\_SoX60mKmr9joMfcOT2El8_EC71BFD2-D846-49B6-BA09-137B40DC09A2_1709041923756.csv"
+f41_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
+f42_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F42\1xdBelP3v7AlcgqS2-4jB7_2c3b488a-fe81-428f-8b9d-bf9db3ebc57e_1686314511083.csv"
+test_csv = normal_csv
 data = pd.read_csv(test_csv)
 data = padding(data.iloc[:, 2:30], pad_size=28)
 print(f"data shape: {data.shape}")
