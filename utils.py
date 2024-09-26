@@ -1,8 +1,12 @@
 import base64
+import random
 import re
 import shutil
 
+import numpy as np
 import requests
+import torch
+
 
 def base64_encode(stream):
     return str(base64.b64encode(stream), "utf-8")
@@ -50,9 +54,15 @@ def safe_int(value, default=0):
         _ = e
         return default
 
+
 def replace_special_character(raw_str):
     update_str = (
-        raw_str.replace("\n", "。").replace("\r", "").replace("【", "").replace("】", "").replace("[", "").replace("]", "")
+        raw_str.replace("\n", "。")
+        .replace("\r", "")
+        .replace("【", "")
+        .replace("】", "")
+        .replace("[", "")
+        .replace("]", "")
     )
     return update_str
 
@@ -65,3 +75,16 @@ async def download_file(file_url, file_path):
 
 def copy_file(source_path, target_path):
     shutil.copy(source_path, target_path)
+
+
+def init_seed(manual_seed=1):
+    """
+    Set random seed for torch and numpy.
+    """
+    random.seed(manual_seed)
+    np.random.seed(manual_seed)
+    torch.manual_seed(manual_seed)
+
+    torch.cuda.manual_seed_all(manual_seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False

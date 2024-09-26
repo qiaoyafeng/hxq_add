@@ -19,7 +19,7 @@ from mimetypes import guess_type
 from api.detect import detect_api
 from api.file import file_api
 from api.schemas import ImageDetectRequest
-from utils import get_resp, replace_special_character, build_resp
+from utils import get_resp, replace_special_character, build_resp, init_seed
 from config import Config, settings
 
 app = FastAPI(
@@ -141,6 +141,7 @@ async def image_batch_detect(
 
 
 if __name__ == "__main__":
+    init_seed()
     uvicorn.run(
         app="__main__:app",
         host=settings.HOST,

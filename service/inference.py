@@ -16,15 +16,6 @@ TEMP_PATH = Config.get_temp_path()
 
 class InferenceService:
     def __init__(self, weights_path):
-        self.manual_seed = 1
-        random.seed(self.manual_seed)
-        np.random.seed(self.manual_seed)
-        torch.manual_seed(self.manual_seed)
-        torch.cuda.manual_seed_all(self.manual_seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-        torch.set_grad_enabled(False)
-
         self.visual_net = ConvLSTMVisual(
             input_dim=3,
             output_dim=256,
@@ -45,6 +36,7 @@ class InferenceService:
         self.evaluator.load_state_dict(self.checkpoint["evaluator"], strict=False)
         self.visual_net.eval()
         self.evaluator.eval()
+        torch.set_grad_enabled(False)
 
     def pre_check(self, data_df):
         data_df = data_df.apply(pd.to_numeric, errors="coerce")
