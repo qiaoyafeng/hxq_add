@@ -156,10 +156,10 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # 训练模型
-    train_model(model, dataloader, criterion, optimizer, num_epochs)
+    # train_model(model, dataloader, criterion, optimizer, num_epochs)
 
     # 保存训练好的模型
-    save_model(model, model_save_path)
+    # save_model(model, model_save_path)
 
     # 加载模型进行推理
     loaded_model = MultiClassNet()
@@ -168,11 +168,11 @@ if __name__ == "__main__":
     # 示例推理 all_labels_dict = {"normal": 0, "F20": 1, "F31": 2, "F32": 3, "F41": 4, "F42": 5}
     normal_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\normal\_SoX60mKmr9joMfcOT2El8_EC71BFD2-D846-49B6-BA09-137B40DC09A2_1709041923756_doctor.csv"
     f20_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
-    f31_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
+    f31_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F31\2NlXXKkSTBArMcAcgN8I87_f215c9ca-8404-4b54-b405-ae73f2e4f4d6_1694005229535.csv"
     f32_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F32\_SoX60mKmr9joMfcOT2El8_EC71BFD2-D846-49B6-BA09-137B40DC09A2_1709041923756.csv"
-    f41_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F20\9o5atvJY0S7nZ4KMCYAlTA_CB4A886E-FF60-4C52-AEA2-48C9AD504104_1681565414504.csv"
+    f41_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F41\KzdMBYL6SeAmEBauFukGi7_1777dd18-a820-42ba-89e6-51ef8c52283a_1685354605923.csv"
     f42_csv = r"E:\myworkspace\hxq_ade\data\hxq\multi_class\F42\1xdBelP3v7AlcgqS2-4jB7_2c3b488a-fe81-428f-8b9d-bf9db3ebc57e_1686314511083.csv"
-    test_csv = f42_csv
+    test_csv = f32_csv
     data = pd.read_csv(test_csv)
     data = padding(data.iloc[:, 2:30], pad_size=28)
     print(f"data shape: {data.shape}")

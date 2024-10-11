@@ -137,11 +137,6 @@ class InferenceService:
                 "description": description,
             }
 
-        return {
-            "state": "normal",
-            "index": 0,
-        }
-
 
 inference_service = InferenceService(
     weights_path="weights/V+Conv2D-BiLSTM+PHQ-Binary_2024-09-23_105353_acc-82.3529.pt",
