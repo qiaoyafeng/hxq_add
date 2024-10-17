@@ -6,9 +6,9 @@ MANUAL_SEED: 1
 LOG_TITLE: Depression Detection with visual features (key points & gaze direction), Conv2D-BiLSTM, PHQ-Binary, CrossEntropy with weights, ASAM # TODO
 
 DATA:
-  TRAIN_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
-  VALIDATION_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
-  TEST_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\clipped_data
+  TRAIN_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\train\clipped_data
+  VALIDATION_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\train\clipped_data
+  TEST_ROOT_DIR: E:\myworkspace\hxq_ade\dataset\test\clipped_data
   USE_MEL_SPECTROGRAM: False
   VISUAL_WITH_GAZE: True
   PADDING:
@@ -19,7 +19,7 @@ DATA:
 
 MODEL:
   PHQ_THRESHOLD: 10
-  EPOCHS: 500
+  EPOCHS: 200
   WEIGHTS:
     TYPE: new        # ['new', 'last', 'absolute_path', others custom_type]
     DATE:
@@ -34,7 +34,7 @@ MODEL:
     OUTPUT_DIM: 256
     NUM_LAYERS: 4
     ACTIVATION: relu  # ['sigmoid', 'softmax', 'global', else]
-    NORM: wn          # ['bn', 'wn']: nn.BatchNorm1d, nn.utils.weight_norm
+    NORM: bn          # ['bn', 'wn']: nn.BatchNorm1d, nn.utils.weight_norm
     DROPOUT: 0.5
   EVALUATOR:
     PREDICT_TYPE: phq-binary    # ['phq-subscores', 'phq-score', 'phq-binary']

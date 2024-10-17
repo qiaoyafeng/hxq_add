@@ -103,9 +103,9 @@ def main(
             batches_start_time = time.time()
 
             for data in tqdm(dataloaders[mode]):
-                print(
-                    f"data ID: {data['ID']}, data phq_binary_gt: {data['phq_binary_gt']}"
-                )
+                # print(
+                #     f"data ID: {data['ID']}, data phq_binary_gt: {data['phq_binary_gt']}"
+                # )
                 batch_size = len(data["ID"])
 
                 # store ground truth
@@ -254,8 +254,8 @@ def main(
             # print('PHQ Score prediction: {}'.format(phq_score_pred[:20]))
             # print('PHQ Score ground truth: {}'.format(phq_score_gt[:20]))
 
-            print("PHQ Binary prediction: {}".format(phq_binary_pred[:20]))
-            print("PHQ Binary ground truth: {}".format(phq_binary_gt[:20]))
+            print("PHQ Binary prediction: {}".format(phq_binary_pred[:200]))
+            print("PHQ Binary ground truth: {}".format(phq_binary_gt[:200]))
 
             average_loss = total_loss / n_batches
             lr = scheduler.get_last_lr()[0]

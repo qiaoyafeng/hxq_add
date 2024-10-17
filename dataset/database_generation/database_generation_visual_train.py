@@ -225,12 +225,14 @@ def save_user_base_info_to_csv(csv_path, data):
 
 
 if __name__ == "__main__":
+    data_root_dir = r"E:\myworkspace\hxq_ade\data"
+    dataset_root_dir = r"E:\myworkspace\hxq_ade\data"
     patient_openface_feature_root_dir = (
-        r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_patient"
+        rf"{data_root_dir}\hxq\train\video_subclip_patient"
     )
 
     normal_openface_feature_root_dir = (
-        r"E:\myworkspace\hxq_ade\data\hxq\video_subclip_doctor"
+        rf"{data_root_dir}\hxq\train\video_subclip_doctor"
     )
 
     patients_feature_files = get_users_openface_feature_files(
@@ -251,11 +253,11 @@ if __name__ == "__main__":
     is_patient_labels = [users_dict["is_patient"] for users_dict in users_feature_files]
     user_base_info = {"user_id": user_ids, "is_patient": is_patient_labels}
 
-    csv_path = r"E:\myworkspace\hxq_ade\dataset\clipped_data\user_info.csv"
+    csv_path = rf"{dataset_root_dir}\train\clipped_data\user_info.csv"
 
     save_user_base_info_to_csv(csv_path, user_base_info)
 
-    users_feature_dir = r"E:\myworkspace\hxq_ade\dataset\clipped_data"
+    users_feature_dir = rf"{dataset_root_dir}\train\clipped_data"
 
     save_user_ids(users_feature_dir, csv_path)
 
