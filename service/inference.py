@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 
 from common.constants import DEPRESSED_STATE_DICT, ALL_LABELS_DICT, ALL_LABELS_DESC_DICT
-from config import Config
+from config import Config, settings
 
 from models.convlstm import ConvLSTMVisual
 from models.evaluator import Evaluator
@@ -139,6 +139,6 @@ class InferenceService:
 
 
 inference_service = InferenceService(
-    weights_path="weights/V+Conv2D-BiLSTM+PHQ-Binary_2024-09-23_105353_acc-82.3529.pt",
-    multi_class_weights_path="weights/cnn_model.pth",
+    weights_path=settings.MODEL_WEIGHTS_PATH,
+    multi_class_weights_path=settings.MODEL_MULTI_CLASS_WEIGHTS_PATH,
 )
