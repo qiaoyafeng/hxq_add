@@ -67,9 +67,7 @@
 
     <script>
 
-        var batch_no = Date.now();
-        console.log("batch_no："+batch_no);
-        $("#batch_no").val(batch_no)
+
 
         $('#files').fileinput({
             showUpload: false,
@@ -84,6 +82,9 @@
 
         $("#analysis_images_form").on("submit", function (e) {
                 e.preventDefault();
+                var batch_no = Date.now();
+                console.log("batch_no："+batch_no);
+                $("#batch_no").val(batch_no)
                 var formData = new FormData(this);
                 $("#spinner-div").show();
                 $.ajax({
