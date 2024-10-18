@@ -88,20 +88,21 @@ def get_file(file_name: str):
         return {"code": 404, "message": "file does not exist."}
 
 
-@app.get("/wav/get_file/{file_name}", summary="Get file by file name")
-def get_file(file_name: str):
-    return StreamingResponse(
-        content=requests.get(url=f"{settings.HXQ_WAV2LIP_DOMAIN}/get_file/{file_name}"),
-        media_type=guess_type(file_name)[0],
-    )
-
-
-@app.get("/voice/get_file/{file_name}", summary="Get file by file name")
-def get_file(file_name: str):
-    return StreamingResponse(
-        requests.get(url=f"{settings.HXQ_VC_DOMAIN}/get_file/{file_name}"),
-        media_type=guess_type(file_name)[0],
-    )
+@app.post("/image/batch_upload", summary="图片批量上传")
+async def image_batch_upload(
+    batch_no: str = Form(),
+    upload_images: list[UploadFile] = File(
+        description="Multiple images as UploadFile"
+    ),
+):
+    image_paths = []
+    print(f"batch_no: {batch_no}")
+    for image in upload_images:
+        dir_path = Path(f"{TEMP_PATH}/img/{batch_no}")
+        dir_path.mkdir(parents=True, exist_ok=True)
+        url, path, name = await file_api.uploadfile(image, dir_path)
+        image_paths.append(path)
+    return build_resp(0, {})
 
 
 @app.post("/image/detect", summary="图片检测")
@@ -127,17 +128,20 @@ async def image_detect(
 async def image_batch_detect(
     batch_no: str = Form(),
     files: list[UploadFile] = File(description="Multiple images as UploadFile"),
-    is_multi_class: int = 0,
+    is_multi_class: int = Form(),
 ):
     image_paths = []
     print(f"batch_no: {batch_no}")
+    print(f"is_multi_class: {is_multi_class}")
     for image in files:
         dir_path = Path(f"{TEMP_PATH}/img/{batch_no}")
         dir_path.mkdir(parents=True, exist_ok=True)
         url, path, name = await file_api.uploadfile(image, dir_path)
         image_paths.append(path)
 
-    detect_dict = await detect_api.image_detect(image_paths, batch_no, is_multi_class=is_multi_class)
+    detect_dict = await detect_api.image_detect(
+        image_paths, batch_no, is_multi_class=is_multi_class
+    )
     return build_resp(0, {"detect": detect_dict})
 
 

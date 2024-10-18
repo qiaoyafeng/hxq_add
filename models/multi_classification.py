@@ -63,10 +63,10 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         # 读取CSV文件中的特征
         item_file = self.file_paths[idx]
-        print(f"item_file: {item_file}")
+        # print(f"item_file: {item_file}")
         data = pd.read_csv(item_file)
         data = padding(data.iloc[:, 2:30], pad_size=28)
-        print(f"data shape: {data.shape}")
+        # print(f"data shape: {data.shape}")
         features = np.array(data.values.astype(np.float32))
         label = torch.tensor(self.labels[idx])
         features = torch.tensor(features).view(1, 28, 28)
@@ -98,7 +98,7 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=10):
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
         epoch_loss = loss.item()
         if loss.item() < best_loss:
-            save_model(model, f"cnn_model_{epoch_loss}.pth")
+            save_model(model, f"cnn_model_{epoch_loss}.pt")
             best_loss = epoch_loss
 
 
@@ -135,9 +135,9 @@ if __name__ == "__main__":
     print(f"file_paths: {file_paths}, labels: {labels}")
 
     batch_size = 50
-    num_epochs = 50
+    num_epochs = 200
     learning_rate = 0.001
-    model_save_path = "cnn_model.pth"
+    model_save_path = "cnn_model.pt"
 
     # 数据转换
     transform = transforms.Compose(
@@ -156,10 +156,10 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # 训练模型
-    # train_model(model, dataloader, criterion, optimizer, num_epochs)
+    train_model(model, dataloader, criterion, optimizer, num_epochs)
 
     # 保存训练好的模型
-    # save_model(model, model_save_path)
+    save_model(model, model_save_path)
 
     # 加载模型进行推理
     loaded_model = MultiClassNet()
