@@ -291,12 +291,12 @@ class ConvLSTMVisual(nn.Module):
         self.conv = ConvBlock2d(
             in_channels=input_dim,
             out_channels=conv_hidden,
-            kernel=(70, 3),
+            kernel=(72, 3),
             stride=(1, 1),
             pad=(0, 1),
             normalisation="bn",
         )
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=2, padding=0)
+        self.pool = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
         self.drop = nn.Dropout(dropout)
         self.lstm = nn.LSTM(
             input_size=conv_hidden,

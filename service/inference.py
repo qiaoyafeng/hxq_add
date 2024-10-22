@@ -90,7 +90,9 @@ class InferenceService:
         gaze_indexes, _ = self.get_feature_index(by_type)
         gaze_coor = (
             all_feature.iloc[:, gaze_indexes[0]:gaze_indexes[1]].to_numpy().reshape(len(all_feature), 2, 3)
-        )  # 4 gaze vectors, 3 axes
+        )
+        padding = np.zeros((len(all_feature), 2, 3))
+        gaze_coor = np.concatenate((gaze_coor, padding), axis=1)
         return gaze_coor
 
     def load_keypoints(self, all_feature, by_type):
