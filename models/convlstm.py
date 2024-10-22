@@ -304,6 +304,7 @@ class ConvLSTMVisual(nn.Module):
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
+            dropout=dropout
         )
         self.fc = FullyConnected(
             in_channels=lstm_hidden * 2,

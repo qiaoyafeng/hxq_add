@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-
+import torch.nn as nn
 from common.constants import DEPRESSED_STATE_DICT, ALL_LABELS_DICT, ALL_LABELS_DESC_DICT
 from config import Config, settings
 
@@ -18,7 +18,7 @@ TEMP_PATH = Config.get_temp_path()
 
 class InferenceService:
     def __init__(self, weights_path, multi_class_weights_path):
-        # init_seed()
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.visual_net = ConvLSTMVisual(
@@ -30,11 +30,13 @@ class InferenceService:
             activation="relu",
             norm="bn",
             dropout=0.5,
-        ).to(self.device)
+        )
 
         self.evaluator = Evaluator(
-            feature_dim=256, output_dim=2, predict_type="phq-binary", num_subscores=8
-        ).to(self.device)
+            feature_dim=256, output_dim=2, predict_type="phq-binary"
+        )
+        self.visual_net = nn.DataParallel(self.visual_net).to(self.device)
+        self.evaluator = nn.DataParallel(self.evaluator).to(self.device)
         print(f"load visual_net: {weights_path} ...")
         self.weights_path = weights_path
         self.checkpoint = torch.load(weights_path)
@@ -44,6 +46,9 @@ class InferenceService:
         self.evaluator.eval()
         torch.set_grad_enabled(False)
         print(f"load visual_net: {weights_path} done")
+
+        print(f"visual_net==================: {self.visual_net}")
+        print(f"evaluator==================: {self.evaluator}")
 
         print(f"load multi_class_weights: {multi_class_weights_path} ...")
 

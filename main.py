@@ -203,6 +203,7 @@ async def vue_video_detect(
 
 
 if __name__ == "__main__":
+    init_seed()
     uvicorn.run(
         app="__main__:app",
         host=settings.HOST,
