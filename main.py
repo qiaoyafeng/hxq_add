@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import uuid
@@ -162,6 +163,22 @@ async def video_detect(
     url, path, name = await file_api.uploadfile(video, dir_path)
     detect_dict = await detect_api.video_detect(path, batch_no)
     return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
+
+
+# 原来VUE格式的接口
+@app.post("/video", summary="视频检测(原来VUE格式的接口)")
+async def vue_video_detect(
+    file: UploadFile = File(),
+):
+    batch_no = f"{uuid.uuid4().hex}"
+    dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    url, path, name = await file_api.uploadfile(file, dir_path)
+    detect_dict = await detect_api.video_detect(path, batch_no)
+    depressed_index_str = detect_dict["depressed_index"]
+    video_score = int(float(depressed_index_str.strip('%')))
+    data = {'code': 200, 'data': int(video_score), 'msg': 'Video success'}
+    return json.dumps(data)
 
 
 if __name__ == "__main__":
