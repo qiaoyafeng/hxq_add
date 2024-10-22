@@ -143,10 +143,13 @@ class InferenceService:
         binary_pred = score_pred[0].item()
         # binary_pred 0: 正常，1：抑郁
         print(f"binary_pred: {binary_pred}")
+        depressed_score = int(depressed_index * 100)
+        depressed_index = f'{depressed_index:.2%}'
         return {
             "depressed_id": binary_pred,
             "depressed_state": DEPRESSED_STATE_DICT[binary_pred],
-            "depressed_index":  f'{depressed_index:.2%}',
+            "depressed_index":  depressed_index,
+            "depressed_score":  depressed_score
         }
 
     async def multi_class_inference(self, input_data):

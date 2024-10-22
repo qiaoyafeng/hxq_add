@@ -166,6 +166,30 @@ async def video_detect(
 
 
 # 原来VUE格式的接口
+@app.post("/login", summary="登录(原来VUE格式的接口)")
+async def vue_login_post(
+        username: str = Form(), password: str = Form()
+):
+    print(username)
+    print("password" + password)
+    if username == "" or password == "":
+        print('用户名和密码不能为空！！！')
+        data = {'code': 401, 'data': '', 'msg': 'username or password can not null'}
+        return data
+
+    print('login success')
+    data = {'code': 200, 'data': 1000, 'msg': 'login success'}
+    return data
+
+
+@app.get("/Time", summary="Get Time")
+def get_time(timeBegin: int = 0, timeEnd: int = 0):
+    print(f"timeBegin: {timeBegin}")
+    print(f"timeEnd: {timeEnd}")
+    data = {'code': 200, 'data': '', 'msg': 'Time success'}
+    return data
+
+
 @app.post("/video", summary="视频检测(原来VUE格式的接口)")
 async def vue_video_detect(
     file: UploadFile = File(),
@@ -175,10 +199,7 @@ async def vue_video_detect(
     dir_path.mkdir(parents=True, exist_ok=True)
     url, path, name = await file_api.uploadfile(file, dir_path)
     detect_dict = await detect_api.video_detect(path, batch_no)
-    depressed_index_str = detect_dict["depressed_index"]
-    video_score = int(float(depressed_index_str.strip('%')))
-    data = {'code': 200, 'data': int(video_score), 'msg': 'Video success'}
-    return json.dumps(data)
+    return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
 
 
 if __name__ == "__main__":
