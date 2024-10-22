@@ -18,7 +18,9 @@ TEMP_PATH = Config.get_temp_path()
 
 class InferenceService:
     def __init__(self, weights_path, multi_class_weights_path):
-        init_seed()
+        # init_seed()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         self.visual_net = ConvLSTMVisual(
             input_dim=3,
             output_dim=256,
@@ -28,11 +30,11 @@ class InferenceService:
             activation="relu",
             norm="bn",
             dropout=0.5,
-        )
+        ).to(self.device)
 
         self.evaluator = Evaluator(
             feature_dim=256, output_dim=2, predict_type="phq-binary", num_subscores=8
-        )
+        ).to(self.device)
         print(f"load visual_net: {weights_path} ...")
         self.weights_path = weights_path
         self.checkpoint = torch.load(weights_path)
@@ -133,8 +135,8 @@ class InferenceService:
         visual_input = visual_input.permute(0, 3, 2, 1).contiguous()
         print(f"visual_inference visual_input permute shape: {visual_input.shape}")
         with torch.no_grad():
-            visual_features = self.visual_net(visual_input)
-            predictions = self.evaluator(visual_features)
+            visual_features = self.visual_net(visual_input.to(self.device))
+            predictions = self.evaluator(visual_features.to(self.device))
         print(f"visual_inference predictions: {predictions}")
         depressed_index = predictions[0][1].item()
         score_pred = predictions.argmax(dim=-1)
