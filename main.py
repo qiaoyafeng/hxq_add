@@ -1,5 +1,6 @@
 import os
 import random
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -70,6 +71,11 @@ async def index(request: Request):
     )
 
 
+@app.get("/detect", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("detect.html", {"request": request})
+
+
 @app.post("/uploadfile/")
 async def uploadfile(file: UploadFile):
     resp = get_resp()
@@ -91,9 +97,7 @@ def get_file(file_name: str):
 @app.post("/image/batch_upload", summary="图片批量上传")
 async def image_batch_upload(
     batch_no: str = Form(),
-    upload_images: list[UploadFile] = File(
-        description="Multiple images as UploadFile"
-    ),
+    upload_images: list[UploadFile] = File(description="Multiple images as UploadFile"),
 ):
     image_paths = []
     print(f"batch_no: {batch_no}")
@@ -145,8 +149,22 @@ async def image_batch_detect(
     return build_resp(0, {"detect": detect_dict})
 
 
+@app.post("/video/detect", summary="视频检测")
+async def video_detect(
+    batch_no: str = Form(None),
+    video: UploadFile = File(),
+):
+    print(f"batch_no: {batch_no}")
+    if not batch_no:
+        batch_no = f"{uuid.uuid4().hex}"
+    dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    url, path, name = await file_api.uploadfile(video, dir_path)
+    detect_dict = await detect_api.video_detect(path, batch_no)
+    return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
+
+
 if __name__ == "__main__":
-    init_seed()
     uvicorn.run(
         app="__main__:app",
         host=settings.HOST,

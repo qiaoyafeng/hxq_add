@@ -13,5 +13,8 @@ class DetectAPI:
             detect_dict = await self.detect_service.image_detect(image_paths, batch_no)
         return detect_dict
 
+    async def video_detect(self, video_path, batch_no):
+        detect_dict = await self.detect_service.video_detect(video_path, batch_no)
+        return detect_dict
 
 detect_api = DetectAPI()

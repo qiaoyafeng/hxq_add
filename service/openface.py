@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from config import Config
@@ -9,10 +10,47 @@ class OpenFaceService:
     def __init__(self):
         pass
 
+    async def feature_extraction_by_video(self, video_paths, out_dir=None):
+        if os.name == "nt":
+            command = r"D:\Programs\OpenFace_2.2.0_win_x64\FeatureExtraction.exe"
+        else:
+            command = "FeatureExtraction"
+        video_args = []
+        feature_files = []
+        for video_path in video_paths:
+            video_args.append("-f")
+            video_args.append(video_path)
+            video_name = Path(video_path).name
+            video_stem = Path(video_path).stem
 
-    async def feature_extraction_by_video(self, video, out_dir=None):
+            if not out_dir:
+                video_directory = Path(video_path).parent
+                out_dir = video_directory / "processed"
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_dir = out_dir.as_posix()
 
-        return
+            feature_file = f"{out_dir}/{video_stem}.csv"
+            feature_files.append(feature_file)
+        feature_args = ["-3Dfp", "-pose", "-aus", "-gaze"]
+        out_dir_args = ["-out_dir", out_dir]
+        args = video_args + feature_args + out_dir_args
+
+        print(f"command: {command} , args: {args}")
+
+        try:
+            result = subprocess.Popen([command] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # 获取实时输出
+            for line in iter(result.stdout.readline, b''):
+                sys.stdout.write(line.decode('utf-8'))
+                sys.stdout.flush()
+
+            # 等待命令执行完成
+            result.wait()
+            return feature_files
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e}")
+            print(e.output)
+            return []
 
     async def feature_extraction_by_images(self, image_paths, out_dir=None):
         if os.name == "nt":
@@ -42,9 +80,14 @@ class OpenFaceService:
         print(f"command: {command} , args: {args}")
 
         try:
-            result = subprocess.run([command] + args, check=True, capture_output=True, text=True)
-            # 打印输出结果
-            print(result.stdout)
+            result = subprocess.Popen([command] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # 获取实时输出
+            for line in iter(result.stdout.readline, b''):
+                sys.stdout.write(line.decode('utf-8'))
+                sys.stdout.flush()
+
+            # 等待命令执行完成
+            result.wait()
             return feature_files
         except subprocess.CalledProcessError as e:
             print(f"Error occurred: {e}")

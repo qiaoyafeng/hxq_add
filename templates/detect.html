@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>好心情 - ADE API</title>
+
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.min.css" crossorigin="anonymous" type="text/css">
+  <link rel="stylesheet" href="static/css/fileinput.css" media="all" type="text/css" >
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" crossorigin="anonymous" type="text/css">
+  <script src="/static/js/jquery.min.js"></script>
+  <script src="/static/js/popper.min.js"></script>
+  <script src="/static/js/bootstrap.min.js"></script>
+  <script src="/static/js/fileinput.js" type="text/javascript"></script>
+  <script src="/static/js/locales/zh.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+
+    <div class="container">
+        <h2><p class="text-center">视频分析</p></h2>
+        <form id="analysis_form"  enctype="multipart/form-data">
+          <div class="form-group">
+            <div class="form-group">
+                <label for="video">选择MP4文件：</label>
+                <input type="file" class="form-control-file" id="video" name="video">
+              </div>
+
+            <div>
+                <input id="batch_no" name="batch_no" type="text" style="display:none">
+            </div>
+
+          </div>
+          <button type="submit" class="btn btn-primary">分析</button>
+      </form>
+
+    </div>
+
+
+    <div class="container">
+
+        <div id="spinner-div" class="pt-5">
+          <div class="spinner-border text-primary" role="status">
+          </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="info_head"></div>
+            <div class="card-body"  id="info_body"></div>
+            <div class="alert alert-primary card-footer" id="info_footer"></div>
+        </div>
+        <div class="alert alert-danger" id="alert_info"> </div>
+
+
+    </div>
+
+    <script>
+
+
+
+        $('#files').fileinput({
+            showUpload: false,
+            theme: 'fa5',
+            language: 'zh',
+            allowedFileExtensions: ['jpg', 'png', 'gif']
+        });
+        $("#spinner-div").hide();
+        $("#info_footer").hide();
+        $("#alert_info").hide();
+
+        $("#analysis_form").on("submit", function (e) {
+                e.preventDefault();
+                var batch_no = Date.now();
+                console.log("batch_no："+batch_no);
+                $("#batch_no").val(batch_no)
+                var formData = new FormData(this);
+                $("#spinner-div").show();
+                $.ajax({
+                    url: "/video/detect",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        console.log("analysis"  +response)
+                        show_analysis(response)
+
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Error: " + error);
+                    },
+                    complete: function () {
+                    $("#spinner-div").hide();
+                  }
+                });
+            });
+
+
+        function show_analysis(info) {
+
+            const detect = info.data.detect;
+            console.log("detect:", detect)
+            const code = info.code;
+            const message = info.message;
+            if (code ===0){
+                let info_head_html = "分析结果：";
+                $("#info_head").html(info_head_html);
+
+                let info_body_html = "";
+
+                $("#info_body").html(info_body_html);
+                var info_footer_html;
+                info_footer_html = "<br>详情：<br>"
+
+                $.each(detect, function(key, value) {
+                    var element = key + ': ' + value + '<br>';
+                    info_footer_html += element
+                });
+
+                $("#info_footer").html(info_footer_html);
+                $("#info_footer").show();
+                let alert_info_html = "请注意：以上内容仅供参考，不能作为医学诊断。<br>"
+                let rule_info = '<span></span>'
+                alert_info_html += rule_info
+                $("#alert_info").html(alert_info_html);
+                $("#alert_info").show();
+            }
+            else {
+                var info_footer_html;
+                info_footer_html = "<br>" + message
+                $("#info_footer").html(info_footer_html);
+                $("#info_footer").show();
+
+            }
+        }
+
+
+    </script>
+
+
+</body>
+</html>
