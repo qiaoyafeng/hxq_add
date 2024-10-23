@@ -37,9 +37,8 @@
             <div>
                 <label for="is_multi_class">分类方式：</label>
                 <select id="is_multi_class" name="is_multi_class">
-                    <option value=1>多分类</option>
+<!--                    <option value=1>多分类</option>-->
                     <option value=0>二分类</option>
-
                 </select>
             </div>
 
@@ -81,6 +80,9 @@
 
 
         $("#analysis_images_form").on("submit", function (e) {
+                $("#spinner-div").hide();
+                $("#info_footer").hide();
+                $("#alert_info").hide();
                 e.preventDefault();
                 var batch_no = Date.now();
                 console.log("batch_no："+batch_no);

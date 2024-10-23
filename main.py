@@ -194,6 +194,7 @@ def get_time(timeBegin: int = 0, timeEnd: int = 0):
 async def vue_video_detect(
     file: UploadFile = File(),
 ):
+    print(f"vue_video_detect: file:{file}")
     batch_no = f"{uuid.uuid4().hex}"
     dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)

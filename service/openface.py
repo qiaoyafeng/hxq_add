@@ -11,6 +11,7 @@ class OpenFaceService:
         pass
 
     async def feature_extraction_by_video(self, video_paths, out_dir=None):
+        print(f"feature_extraction_by_video: video_paths: {video_paths}")
         if os.name == "nt":
             command = r"D:\Programs\OpenFace_2.2.0_win_x64\FeatureExtraction.exe"
         else:
