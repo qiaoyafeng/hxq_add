@@ -144,12 +144,13 @@ class InferenceService:
             predictions = self.evaluator(visual_features.to(self.device))
         print(f"visual_inference predictions: {predictions}")
         depressed_index = predictions[0][1].item()
+        print(f"depressed_index: {depressed_index}")
         score_pred = predictions.argmax(dim=-1)
-        binary_pred = score_pred[0].item()
         # binary_pred 0: 正常，1：抑郁
-        print(f"binary_pred: {binary_pred}")
+        binary_pred = score_pred[0].item()
         depressed_score = int(depressed_index * 100)
         depressed_index = f'{depressed_index:.2%}'
+        print(f"depressed_index: {depressed_index}, score_pred: {score_pred} , binary_pred: {binary_pred}, depressed_score: {depressed_score}")
         return {
             "depressed_id": binary_pred,
             "depressed_state": DEPRESSED_STATE_DICT[binary_pred],
