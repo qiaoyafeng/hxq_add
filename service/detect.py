@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from config import Config
+from common.constants import ALL_LABELS_DESC_DICT
+from config import Config, settings
 from service.inference import inference_service
 from service.openface import openface_service
 
@@ -17,7 +18,7 @@ class DetectService:
         self.openface_service = openface_service
         self.inference_service = inference_service
 
-    def padding(data, pad_size=120):
+    def padding(self, data, pad_size=120):
         if data.shape[0] < pad_size:
             size = tuple()
             size = size + (pad_size,) + data.shape[1:]
@@ -112,6 +113,36 @@ class DetectService:
             (2, visual_input.shape[0], visual_input.shape[1], visual_input.shape[2]),
         )
         detect_dict = await self.inference_service.visual_inference(visual_input)
+        depressed_id = detect_dict["depressed_id"]
+        detect_list = []
+        # 是否用多分类模型推理
+        if settings.MULTI_CLASS_METHOD == "one2one":
+            data = pd.read_csv(batch_file)
+            data = self.padding(data.iloc[:, 2:30], pad_size=28)
+            print(f"data shape: {data.shape}")
+            features = np.array(data, np.float32)
+            print(f"features: {features.shape}")
+            features = torch.tensor(features).view(1, 28, 28).unsqueeze(0)
+            class_list = ["F20", "F31", "F32", "F41", "F42"]
+            for f_class in class_list:
+                f_class_detect_dict = await self.inference_service.multi_one2one_inference(f_class, features)
+                if f_class == "F32":
+                    if depressed_id:
+                        detect_list.append(f_class_detect_dict)
+                    else:
+                        state = "normal"
+                        description = ALL_LABELS_DESC_DICT[state]
+                        detect_list.append({
+                            "index": 0,
+                            "state": state,
+                            "description": description,
+                            "class_str": f_class,
+                            "class_name": ALL_LABELS_DESC_DICT[f_class],
+                        })
+                else:
+                    detect_list.append(f_class_detect_dict)
+
+        detect_dict.update({"detect_list": detect_list})
         return detect_dict
 
 detect_service = DetectService()

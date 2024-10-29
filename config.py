@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     # MODEL
     MODEL_WEIGHTS_PATH: str = "weights/binary_model.pt"
     MODEL_MULTI_CLASS_WEIGHTS_PATH: str = "weights/multi_class_model.pt"
+    MULTI_CLASS_METHOD: str = "one2one"
 
     class Config:
         env_file = ".env"

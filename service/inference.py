@@ -10,7 +10,7 @@ from config import Config, settings
 
 from models.convlstm import ConvLSTMVisual
 from models.evaluator import Evaluator
-from models.multi_classification import MultiClassNet
+from models.multi_classification import MultiClassNet, SubClassNet
 from utils import init_seed
 
 TEMP_PATH = Config.get_temp_path()
@@ -56,6 +56,45 @@ class InferenceService:
         self.multi_class_net.load_state_dict(torch.load(multi_class_weights_path))
         self.multi_class_net.eval()
         print(f"load multi_class_weights: {multi_class_weights_path} done")
+
+        f20_weights_path = "weights/f20_cnn_model.pt"
+        print(f"f20  weights: {f20_weights_path} ...")
+        self.f20_net = SubClassNet()
+        self.f20_net.load_state_dict(torch.load(f20_weights_path))
+        self.f20_net.eval()
+        print(f"f20  weights: {f20_weights_path} done")
+
+        f31_weights_path = "weights/f31_cnn_model.pt"
+        print(f"f31  weights: {f31_weights_path} ...")
+        self.f31_net = SubClassNet()
+        self.f31_net.load_state_dict(torch.load(f31_weights_path))
+        self.f31_net.eval()
+        print(f"f31  weights: {f31_weights_path} done")
+
+        f32_weights_path = "weights/f32_cnn_model.pt"
+        print(f"f32  weights: {f32_weights_path} ...")
+        self.f32_net = SubClassNet()
+        self.f32_net.load_state_dict(torch.load(f32_weights_path))
+        self.f32_net.eval()
+        print(f"f32  weights: {f32_weights_path} done")
+
+        f41_weights_path = "weights/f41_cnn_model.pt"
+        print(f"f41  weights: {f41_weights_path} ...")
+        self.f41_net = SubClassNet()
+        self.f41_net.load_state_dict(torch.load(f41_weights_path))
+        self.f41_net.eval()
+        print(f"f41  weights: {f41_weights_path} done")
+
+        f42_weights_path = "weights/f42_cnn_model.pt"
+        print(f"f42  weights: {f42_weights_path} ...")
+        self.f42_net = SubClassNet()
+        self.f42_net.load_state_dict(torch.load(f42_weights_path))
+        self.f42_net.eval()
+        print(f"f42  weights: {f42_weights_path} done")
+
+    def get_class_net(self, class_str):
+        attr_str = f"{class_str.lower()}_net"
+        return getattr(self, attr_str, self.multi_class_net)
 
     def pre_check(self, data_df):
         data_df = data_df.apply(pd.to_numeric, errors="coerce")
@@ -173,6 +212,27 @@ class InferenceService:
                 "index": label_id,
                 "state": state,
                 "description": description,
+            }
+
+    async def multi_one2one_inference(self, class_str, input_data):
+        with torch.no_grad():
+            class_net = self.get_class_net(class_str)
+            # print(f"class_net: {class_net}")
+            predictions = class_net(input_data)
+            _, predicted = torch.max(torch.abs(predictions), 1)
+            label_id = int(predicted)
+            print(f"{class_str} infer : output: {predictions}, {_, predicted}")
+            state = "normal"
+            description = ALL_LABELS_DESC_DICT[state]
+            if label_id:
+                state = class_str
+                description = ALL_LABELS_DESC_DICT[state]
+            return {
+                "index": label_id,
+                "state": state,
+                "description": description,
+                "class_str": class_str,
+                "class_name": ALL_LABELS_DESC_DICT[class_str],
             }
 
 

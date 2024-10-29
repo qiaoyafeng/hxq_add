@@ -38,6 +38,25 @@ class MultiClassNet(nn.Module):
         return x
 
 
+class SubClassNet(nn.Module):
+    def __init__(self):
+        super(SubClassNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        self.fc2 = nn.Linear(128, 2)
+
+    def forward(self, x):
+        x = nn.ReLU()(self.conv1(x))
+        x = nn.MaxPool2d(2)(x)
+        x = nn.ReLU()(self.conv2(x))
+        x = nn.MaxPool2d(2)(x)
+        x = x.view(x.size(0), -1)
+        x = nn.ReLU()(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+
 def padding(data, pad_size=120):
     if data.shape[0] < pad_size:
         size = tuple()
@@ -98,7 +117,7 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=10):
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
         epoch_loss = loss.item()
         if loss.item() < best_loss:
-            save_model(model, f"cnn_model_{epoch_loss}.pt")
+            save_model(model, f"multi_cnn_model_{epoch_loss}.pt")
             best_loss = epoch_loss
 
 
@@ -137,7 +156,7 @@ if __name__ == "__main__":
     batch_size = 50
     num_epochs = 200
     learning_rate = 0.001
-    model_save_path = "cnn_model.pt"
+    model_save_path = "multi_cnn_model.pt"
 
     # 数据转换
     transform = transforms.Compose(
