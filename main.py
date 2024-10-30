@@ -200,6 +200,7 @@ async def vue_video_detect(
     dir_path.mkdir(parents=True, exist_ok=True)
     url, path, name = await file_api.uploadfile(file, dir_path)
     detect_dict = await detect_api.video_detect(path, batch_no)
+    print(f"vue_video_detect: {detect_dict}")
     return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
 
 

@@ -219,7 +219,7 @@ class InferenceService:
             class_net = self.get_class_net(class_str)
             # print(f"class_net: {class_net}")
             predictions = class_net(input_data)
-            _, predicted = torch.max(torch.abs(predictions), 1)
+            _, predicted = torch.max(predictions, 1)
             label_id = int(predicted)
             print(f"{class_str} infer : output: {predictions}, {_, predicted}")
             state = "normal"
