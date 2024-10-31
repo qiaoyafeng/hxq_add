@@ -151,6 +151,7 @@ def infer_video_model(hdr_path):
 
     X_TEST = [x.values for x in x_Test]
     x_test = np.array(X_TEST)
+    print(f"infer_video_model x_test shape: {x_test.shape}")
     # a,b,c = X_TEST.shape[0],X_TEST.shape[1],X_TEST.shape[2]
     # x_test_normal = X_TEST.reshape(-1,c)
     # min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
