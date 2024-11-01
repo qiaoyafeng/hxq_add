@@ -14,7 +14,7 @@ class DetectAPI:
         return detect_dict
 
     async def video_detect(self, video_path, batch_no):
-        detect_dict = await self.detect_service.video_detect_new(video_path, batch_no)
+        detect_dict = await self.detect_service.video_detect_v2(video_path, batch_no)
         return detect_dict
 
 detect_api = DetectAPI()

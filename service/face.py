@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 import tensorflow as tf
+from tensorflow.keras import backend as K
 from tcn import TCN
 
 
@@ -135,10 +136,19 @@ def hdr(video_new_path, hdr_path):
 
 
 # 将HDR特征送入模型中的出结果
-def infer_video_model(hdr_path):
-    vidio_weights_path = "weights/vidio_1.h5"
+def infer_video_model(hdr_path, model_class=None):
+    K.clear_session()
+    def rmse(y_pred, y_true):
+        return K.sqrt(K.mean(K.square(y_pred - y_true)))
+    if model_class:
+        checkpoint_filepath = rf"weights/tcn_{model_class.lower()}.keras"
+        custom_objects = {"TCN": TCN, "rmse": rmse}
+    else:
+        checkpoint_filepath = "weights/vidio_1.h5"
+        custom_objects = {"TCN": TCN, "mse": "mse"}
+    print(f"checkpoint_filepath: {checkpoint_filepath}, custom_objects: {custom_objects}")
     tcn = tf.keras.models.load_model(
-        vidio_weights_path, custom_objects={"TCN": TCN, "mse": "mse"}
+        checkpoint_filepath, custom_objects=custom_objects
     )
     df = pd.read_csv(hdr_path, index_col=0)
     time_step = 10
@@ -159,11 +169,12 @@ def infer_video_model(hdr_path):
     # x_test = x_test_minmax.reshape(a,b,c)
 
     predict = tcn.predict(x_test)
-    print("面部预测结果")
+
     predict_list = []
     for i in range(len(predict)):
         predict_list.append(predict[i][0])
     min_x = np.min(predict)
+    print(f"infer_video_model: min_x: {min_x}, predict_list: {predict_list}")
     return min_x, predict_list
 
 
