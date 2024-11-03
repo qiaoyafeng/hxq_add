@@ -48,8 +48,14 @@ df = df.sample(frac=1.0).reset_index(drop=True)
 
 
 len1 = int(df.shape[0] * 0.9)
-train = df[:len1]
-test = df[len1:]
+
+len_train = len1//10*10
+
+len_test = (df.shape[0] - len_train)//10*10
+
+
+train = df[:len_train]
+test = df[len_train:len_train+len_test]
 
 # 不对y进行归一化
 X_train = train.iloc[:, :-1]
@@ -68,10 +74,10 @@ Y_test = Y_test.reset_index(drop=True)
 Y_test.head(10)
 
 
-x_train = X_train.values.reshape([X_train.shape[0], 1, X_train.shape[1]])
-y_train = Y_train.values
-x_test = X_test.values.reshape([X_test.shape[0], 1, X_test.shape[1]])
-y_test = Y_test.values
+x_train = X_train.values.reshape([-1, 10, X_train.shape[1]])
+y_train = Y_train.values.reshape([-1, 10])
+x_test = X_test.values.reshape([-1, 10, X_test.shape[1]])
+y_test = Y_test.values.reshape([-1, 10])
 
 print(f"train and test shape: {x_train.shape,y_train.shape,x_test.shape,y_test.shape}")
 
@@ -81,7 +87,7 @@ def rmse(y_pred, y_true):
 
 tcn_name = "tcn_f20"
 batch_size = None
-timesteps = x_train.shape[1]
+# timesteps = x_train.shape[1]
 timesteps = 10
 input_dim = x_train.shape[2]  # 输入维数
 tcn = Sequential()

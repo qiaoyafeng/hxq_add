@@ -249,7 +249,7 @@ class DetectService:
         video_fp_feature(video_path, fp_filename)
         hdr_path = batch_dir / "video_capture.csv"
         hdr(fp_filename, hdr_path)
-        min_video_score, video_scores = infer_video_model(hdr_path, model_class="F20")
+        min_video_score, video_scores = infer_video_model(hdr_path)
 
         print(f"视频频模型结束... video_scores: {video_scores}")
         print(f"视频频模型结束... min_video_score: {min_video_score}")
