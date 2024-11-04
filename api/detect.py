@@ -49,32 +49,33 @@ class DetectAPI:
             self.video_detect_job_flag = False
             return
         for task in tasks:
-            video_name = task["video"]
-            batch_no = task["batch_no"]
-            video_path = Path(f"{TEMP_PATH}/video/{batch_no}/{video_name}")
-            if batch_no and video_name:
-                logger.info(f"开始执行视频检测定时任务: {task}")
-                result = asyncio.run(
-                    self.detect_service.video_detect_v2(video_path, batch_no)
-                )
-                print(f"result: {result}")
-                data_dict = {
-                    "id": task["id"],
-                    "point": result["point"],
-                    "diagnosis": result["diagnosis"],
-                    "depressed_score": result["depressed_score"],
-                    "depressed_state": result["depressed_state"],
-                    "depressed_score_list": result["depressed_score_list"],
-                    "current_step": 3,
-                }
-                self.detect_service.udpate_video_detect_task(data_dict)
+            if not task["del_status"]:
+                video_name = task["video"]
+                batch_no = task["batch_no"]
+                video_path = Path(f"{TEMP_PATH}/video/{batch_no}/{video_name}")
+                if batch_no and video_name:
+                    logger.info(f"开始执行视频检测定时任务: {task}")
+                    result = asyncio.run(
+                        self.detect_service.video_detect_v2(video_path, batch_no)
+                    )
+                    print(f"result: {result}")
+                    data_dict = {
+                        "id": task["id"],
+                        "point": result["point"],
+                        "diagnosis": result["diagnosis"],
+                        "depressed_score": result["depressed_score"],
+                        "depressed_state": result["depressed_state"],
+                        "depressed_score_list": result["depressed_score_list"],
+                        "current_step": 3,
+                    }
+                    self.detect_service.udpate_video_detect_task(data_dict)
 
         self.video_detect_job_flag = False
 
     def create_video_detect_cover_image_job(self):
         tasks = self.detect_service.get_all_video_detect_tasks()
         for task in tasks:
-            if not task["cover_image"]:
+            if not task["cover_image"] and not task["del_status"]:
                 logger.info(f"开始执行视频检测任务缩略图定时任务: {task}")
                 batch_no_dir = Path(f"{TEMP_PATH}/video/{task['batch_no']}")
                 video_path = batch_no_dir / task["video"]

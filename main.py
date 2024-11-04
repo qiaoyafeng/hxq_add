@@ -286,20 +286,21 @@ async def get_all_video_detect_tasks():
     task_list = []
     tasks = await detect_api.get_all_video_detect_tasks()
     for task in tasks:
-        task_dict = {
-            "task_id": task["id"],
-            "batch_no": task["batch_no"],
-            "video": task["video"],
-            "video_url": f"/api/get_task_file/{task['batch_no']}/{task['video']}",
-            "point": task["point"],
-            "diagnosis": task["diagnosis"],
-            "cover_image": task["cover_image"],
-            "cover_image_url": f"/api/get_task_file/{task['batch_no']}/{task['cover_image']}",
-            "depressed_score": task["depressed_score"],
-            "depressed_score_list": task["depressed_score_list"],
-            "create_time": task["create_time"],
-        }
-        task_list.append(task_dict)
+        if not task["del_status"]:
+            task_dict = {
+                "task_id": task["id"],
+                "batch_no": task["batch_no"],
+                "video": task["video"],
+                "video_url": f"/api/get_task_file/{task['batch_no']}/{task['video']}",
+                "point": task["point"],
+                "diagnosis": task["diagnosis"],
+                "cover_image": task["cover_image"],
+                "cover_image_url": f"/api/get_task_file/{task['batch_no']}/{task['cover_image']}",
+                "depressed_score": task["depressed_score"],
+                "depressed_score_list": task["depressed_score_list"],
+                "create_time": task["create_time"],
+            }
+            task_list.append(task_dict)
 
     return build_resp(
         0,
