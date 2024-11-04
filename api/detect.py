@@ -35,6 +35,10 @@ class DetectAPI:
         task = self.detect_service.get_video_detect_task_by_batch_no(batch_no)
         return task
 
+    async def get_all_video_detect_tasks(self):
+        tasks = self.detect_service.get_all_video_detect_tasks()
+        return tasks
+
     def video_detect_job(self):
         if self.video_detect_job_flag:
             return

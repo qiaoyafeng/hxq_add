@@ -59,7 +59,9 @@ scheduler = BackgroundScheduler()
 async def startup_event():
     scheduler.start()
     scheduler.add_job(detect_api.video_detect_job, "interval", seconds=5)
-    scheduler.add_job(detect_api.create_video_detect_cover_image_job, "interval", seconds=20)
+    scheduler.add_job(
+        detect_api.create_video_detect_cover_image_job, "interval", seconds=20
+    )
 
 
 @app.get("/docs", include_in_schema=False)
@@ -262,6 +264,45 @@ async def get_video_detect_task(
     return build_resp(
         0,
         {"batch_no": batch_no, "is_completed": is_completed, "task_info": task_info},
+        message="get task success",
+    )
+
+
+@app.get(
+    "/api/get_task_file/{batch_no}/{file_name}", summary="Get task file by file name"
+)
+def get_task_file(batch_no: str, file_name: str):
+    file_path = os.path.isfile(os.path.join(TEMP_PATH, "video", batch_no, file_name))
+    if file_path:
+        return FileResponse(os.path.join(TEMP_PATH, "video", batch_no, file_name))
+    else:
+        return {"code": 404, "message": "file does not exist."}
+
+
+@app.get("/api/get_all_video_detect_tasks", summary="获取所有视频检测任务")
+async def get_all_video_detect_tasks():
+    print(f"get_all_video_detect_tasks")
+    task_list = []
+    tasks = await detect_api.get_all_video_detect_tasks()
+    for task in tasks:
+        task_dict = {
+            "task_id": task["id"],
+            "batch_no": task["batch_no"],
+            "video": task["video"],
+            "video_url": f"/api/get_task_file/{task['batch_no']}/{task['video']}",
+            "point": task["point"],
+            "diagnosis": task["diagnosis"],
+            "cover_image": task["cover_image"],
+            "cover_image_url": f"/api/get_task_file/{task['batch_no']}/{task['cover_image']}",
+            "depressed_score": task["depressed_score"],
+            "depressed_score_list": task["depressed_score_list"],
+            "create_time": task["create_time"],
+        }
+        task_list.append(task_dict)
+
+    return build_resp(
+        0,
+        {"task_list": task_list},
         message="get task success",
     )
 
