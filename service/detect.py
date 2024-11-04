@@ -357,6 +357,11 @@ class DetectService:
         update_sql(build_create(task_dict, "video_detect_task"))
         return task_dict
 
+    def get_all_video_detect_tasks(self):
+        sql = f"SELECT *  FROM video_detect_task vdt"
+        tasks = query_sql(sql)
+        return tasks
+
     def get_video_detect_task_by_step(self, step: int):
         sql = f"SELECT id, batch_no , video , create_time  FROM video_detect_task vdt WHERE current_step = {step}"
         tasks = query_sql(sql)

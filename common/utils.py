@@ -1,12 +1,16 @@
 import os
 import subprocess
 from pathlib import Path
-
+import cv2
+import uuid
 import base64
 import re
 import shutil
-
 import requests
+
+from config import Config
+
+TEMP_PATH = Config.get_temp_path()
 
 
 def base64_encode(stream):
@@ -131,3 +135,22 @@ async def download_file(file_url, file_path):
 
 def copy_file(source_path, target_path):
     shutil.copy(source_path, target_path)
+
+
+def save_nth_frame(video_path, nth=1, suffix="jpg", image_dir=None):
+    image_name, image_path = None, None
+    capture = cv2.VideoCapture(video_path)
+    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    if nth > frame_count:
+        nth = frame_count
+    capture.set(cv2.CAP_PROP_POS_FRAMES, nth)
+    success, image = capture.read()
+    if success:
+        image_name = f"{uuid.uuid4().hex}.{suffix}"
+        if image_dir:
+            image_path = f"{image_dir}/{image_name}"
+        else:
+            image_path = f"{TEMP_PATH}/{image_name}"
+        cv2.imwrite(image_path, image)
+    return image_name, image_path
