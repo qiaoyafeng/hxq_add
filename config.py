@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     DB_USERNAME: str = "root"
     DB_PASSWORD: str = "123456"
 
+    # SCHEDULER
+    IS_SCHEDULER: bool = True
+
     # MODEL
     MODEL_WEIGHTS_PATH: str = "weights/binary_model.pt"
     MODEL_MULTI_CLASS_WEIGHTS_PATH: str = "weights/multi_class_model.pt"

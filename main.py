@@ -57,11 +57,12 @@ scheduler = BackgroundScheduler()
 
 @app.on_event("startup")
 async def startup_event():
-    scheduler.start()
-    scheduler.add_job(detect_api.video_detect_job, "interval", seconds=5)
-    scheduler.add_job(
-        detect_api.create_video_detect_cover_image_job, "interval", seconds=20
-    )
+    if settings.IS_SCHEDULER:
+        scheduler.start()
+        scheduler.add_job(detect_api.video_detect_job, "interval", seconds=5)
+        scheduler.add_job(
+            detect_api.create_video_detect_cover_image_job, "interval", seconds=20
+        )
 
 
 @app.get("/docs", include_in_schema=False)
