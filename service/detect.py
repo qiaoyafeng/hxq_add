@@ -259,14 +259,14 @@ class DetectService:
         threshold = 35
         count_gt_threshold = sum(1 for x in centesimal_video_scores if x > threshold)
 
-        if count_gt_threshold > 2:
+        if count_gt_threshold > 3:
             depressed_id = 1
             depressed_state = "抑郁"
             depressed_score = int(
                 sum(x for x in centesimal_video_scores if x > threshold)
                 / count_gt_threshold
             )
-        elif count_gt_threshold == 2:
+        elif 0 < count_gt_threshold <= 3:
             depressed_id = 0
             depressed_state = "正常，有抑郁风险。"
             depressed_score = int(
@@ -298,8 +298,15 @@ class DetectService:
                 # 转换为百分制
                 f_centesimal_min_video_score = f_min_video_score / 24 * 100
                 f_centesimal_video_scores = [int((x / 24) * 100) for x in f_video_scores]
+                f_count_gt_threshold = sum(1 for x in f_centesimal_video_scores if x > threshold)
                 state = f_class
-                description = ALL_LABELS_DESC_DICT[state]
+                if f_count_gt_threshold > 3:
+                    description = ALL_LABELS_DESC_DICT[state]
+                elif 0 < f_count_gt_threshold <= 3:
+                    description = f"正常，有{ALL_LABELS_DESC_DICT[state]} 风险"
+                else:
+                    description = "正常"
+
                 f_class_detect_dict = {
                                 "index": 0,
                                 "state": state,
