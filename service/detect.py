@@ -317,25 +317,28 @@ class DetectService:
                                 "class_score_list": f_centesimal_video_scores,
                             }
 
-                if f_class == "F32":
-                    if depressed_id:
-                        detect_list.append(f_class_detect_dict)
-                    else:
-                        state = "normal"
-                        description = ALL_LABELS_DESC_DICT[state]
-                        detect_list.append(
-                            {
-                                "index": 0,
-                                "state": state,
-                                "description": description,
-                                "class_str": f_class,
-                                "class_name": ALL_LABELS_DESC_DICT[f_class],
-                                "class_score": depressed_score,
-                                "class_score_list": centesimal_video_scores,
-                            }
-                        )
-                else:
-                    detect_list.append(f_class_detect_dict)
+                # if f_class == "F32":
+                #     if depressed_id:
+                #         detect_list.append(f_class_detect_dict)
+                #     else:
+                #         state = "normal"
+                #         description = ALL_LABELS_DESC_DICT[state]
+                #         detect_list.append(
+                #             {
+                #                 "index": 0,
+                #                 "state": state,
+                #                 "description": description,
+                #                 "class_str": f_class,
+                #                 "class_name": ALL_LABELS_DESC_DICT[f_class],
+                #                 "class_score": depressed_score,
+                #                 "class_score_list": centesimal_video_scores,
+                #             }
+                #         )
+                # else:
+                #     detect_list.append(f_class_detect_dict)
+
+                # 改为F32按实际模型推理结果
+                detect_list.append(f_class_detect_dict)
 
         detect_dict.update({"detect_list": detect_list})
         return detect_dict
