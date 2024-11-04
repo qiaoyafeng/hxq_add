@@ -17,6 +17,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.responses import FileResponse
 from mimetypes import guess_type
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from api.detect import detect_api
 from api.file import file_api
@@ -50,6 +51,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 TEMP_PATH = Config.get_temp_path()
+
+scheduler = BackgroundScheduler()
+
+
+@app.on_event("startup")
+async def startup_event():
+    scheduler.start()
+    scheduler.add_job(detect_api.video_detect_job, "interval", seconds=5)
 
 
 @app.get("/docs", include_in_schema=False)
@@ -167,18 +176,16 @@ async def video_detect(
 
 # 原来VUE格式的接口
 @app.post("/login", summary="登录(原来VUE格式的接口)")
-async def vue_login_post(
-        username: str = Form(), password: str = Form()
-):
+async def vue_login_post(username: str = Form(), password: str = Form()):
     print(username)
     print("password" + password)
     if username == "" or password == "":
-        print('用户名和密码不能为空！！！')
-        data = {'code': 401, 'data': '', 'msg': 'username or password can not null'}
+        print("用户名和密码不能为空！！！")
+        data = {"code": 401, "data": "", "msg": "username or password can not null"}
         return data
 
-    print('login success')
-    data = {'code': 200, 'data': 1000, 'msg': 'login success'}
+    print("login success")
+    data = {"code": 200, "data": 1000, "msg": "login success"}
     return data
 
 
@@ -186,7 +193,7 @@ async def vue_login_post(
 def get_time(timeBegin: int = 0, timeEnd: int = 0):
     print(f"timeBegin: {timeBegin}")
     print(f"timeEnd: {timeEnd}")
-    data = {'code': 200, 'data': '', 'msg': 'Time success'}
+    data = {"code": 200, "data": "", "msg": "Time success"}
     return data
 
 
@@ -202,6 +209,60 @@ async def vue_video_detect(
     detect_dict = await detect_api.video_detect(path, batch_no)
     print(f"vue_video_detect: {detect_dict}")
     return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
+
+
+@app.post("/api/create_video_detect_task", summary="创建视频检测任务")
+async def create_video_detect_task(
+    file: UploadFile = File(),
+):
+    print(f"create_video_detect_task: file:{file}")
+    batch_no = f"{uuid.uuid4().hex}"
+    dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    url, path, name = await file_api.uploadfile(file, dir_path)
+    task_id = 100
+    task = await detect_api.create_video_detect_task(name, batch_no)
+    return build_resp(
+        0, {"task_id": task_id, "batch_no": batch_no}, message="create task success"
+    )
+
+
+@app.get("/api/get_video_detect_task", summary="获取视频检测任务")
+async def get_video_detect_task(
+    batch_no: str,
+):
+    print(f"get_video_detect_task: task_id:{batch_no}")
+    task = await detect_api.get_video_detect_task_by_batch_no(batch_no)
+    is_completed = 0
+    if task:
+        print(f"get_video_detect_task task: {task}")
+        if task["current_step"] == 3:
+            is_completed = 1
+            task_info = {
+                "main_disease": {
+                    "diagnosis": task["diagnosis"],
+                    "point": task["point"],
+                    "name": "抑郁性障碍",
+                },
+                "detect": {
+                    "depressed_id": 0,
+                    "depressed_state": task["diagnosis"],
+                    "depressed_index": task["depressed_score"],
+                    "depressed_score": task["depressed_score"],
+                    "depressed_score_list": task["depressed_score_list"],
+                },
+                "detect_list": [],
+            }
+        else:
+            task_info = {}
+    else:
+        task_info = {}
+
+    return build_resp(
+        0,
+        {"batch_no": batch_no, "is_completed": is_completed, "task_info": task_info},
+        message="get task success",
+    )
 
 
 if __name__ == "__main__":

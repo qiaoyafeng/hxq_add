@@ -7,6 +7,7 @@ import torch
 
 from common.constants import ALL_LABELS_DESC_DICT
 from config import Config, settings
+from service.db import update_sql, build_create, query_list, query_sql, build_update
 from service.face import video_fp_feature, hdr, infer_video_model
 from service.inference import inference_service
 from service.openface import openface_service
@@ -199,7 +200,7 @@ class DetectService:
             "depressed_state": depressed_state,
             "depressed_index": depressed_score,
             "depressed_score": depressed_score,
-            "depressed_score_list": centesimal_video_scores
+            "depressed_score_list": centesimal_video_scores,
         }
 
         depressed_id = detect_dict["depressed_id"]
@@ -241,10 +242,7 @@ class DetectService:
         return detect_dict
 
     async def video_detect_v2(self, video_path, batch_no):
-        feature_files = await self.feature_extraction_by_video(video_path)
         batch_dir = Path(f"{TEMP_PATH}/video/{batch_no}")
-        batch_file = batch_dir / "batch_feature.csv"
-        batch_feature = await self.update_batch_feature(feature_files, batch_file)
         fp_filename = batch_dir / "fp_feature.csv"
         video_fp_feature(video_path, fp_filename)
         hdr_path = batch_dir / "video_capture.csv"
@@ -280,11 +278,13 @@ class DetectService:
             )
 
         detect_dict = {
+            "point": count_gt_threshold,
+            "diagnosis": "F32",
             "depressed_id": depressed_id,
             "depressed_state": depressed_state,
             "depressed_index": depressed_score,
             "depressed_score": depressed_score,
-            "depressed_score_list": centesimal_video_scores
+            "depressed_score_list": centesimal_video_scores,
         }
 
         depressed_id = detect_dict["depressed_id"]
@@ -293,12 +293,18 @@ class DetectService:
         if settings.MULTI_CLASS_METHOD == "one2one":
             class_list = ["F20", "F31", "F32", "F41", "F42"]
             for f_class in class_list:
-                f_min_video_score, f_video_scores = infer_video_model(hdr_path, model_class=f_class)
+                f_min_video_score, f_video_scores = infer_video_model(
+                    hdr_path, model_class=f_class
+                )
 
                 # 转换为百分制
                 f_centesimal_min_video_score = f_min_video_score / 24 * 100
-                f_centesimal_video_scores = [int((x / 24) * 100) for x in f_video_scores]
-                f_count_gt_threshold = sum(1 for x in f_centesimal_video_scores if x > threshold)
+                f_centesimal_video_scores = [
+                    int((x / 24) * 100) for x in f_video_scores
+                ]
+                f_count_gt_threshold = sum(
+                    1 for x in f_centesimal_video_scores if x > threshold
+                )
                 state = f_class
                 if f_count_gt_threshold > 3:
                     description = ALL_LABELS_DESC_DICT[state]
@@ -308,14 +314,14 @@ class DetectService:
                     description = "正常"
 
                 f_class_detect_dict = {
-                                "index": 0,
-                                "state": state,
-                                "description": description,
-                                "class_str": f_class,
-                                "class_name": ALL_LABELS_DESC_DICT[f_class],
-                                "class_score": f_centesimal_min_video_score,
-                                "class_score_list": f_centesimal_video_scores,
-                            }
+                    "index": 0,
+                    "state": state,
+                    "description": description,
+                    "class_str": f_class,
+                    "class_name": ALL_LABELS_DESC_DICT[f_class],
+                    "class_score": f_centesimal_min_video_score,
+                    "class_score_list": f_centesimal_video_scores,
+                }
 
                 # if f_class == "F32":
                 #     if depressed_id:
@@ -342,6 +348,28 @@ class DetectService:
 
         detect_dict.update({"detect_list": detect_list})
         return detect_dict
+
+    async def create_video_detect_task(self, video, batch_no):
+        task_dict = {
+            "batch_no": batch_no,
+            "video": video,
+        }
+        update_sql(build_create(task_dict, "video_detect_task"))
+        return task_dict
+
+    def get_video_detect_task_by_step(self, step: int):
+        sql = f"SELECT id, batch_no , video , create_time  FROM video_detect_task vdt WHERE current_step = {step}"
+        tasks = query_sql(sql)
+        return tasks
+
+    def get_video_detect_task_by_batch_no(self, batch_no: str):
+        sql = f"SELECT id, batch_no , video , point, diagnosis, depressed_score, depressed_state, depressed_score_list, current_step, create_time  FROM video_detect_task vdt WHERE batch_no = '{batch_no}'"
+        tasks = query_sql(sql)
+        return tasks[0] if tasks else None
+
+    def udpate_video_detect_task(self, data_dict: dict):
+        update_sql(build_update(data_dict, "video_detect_task"))
+        return
 
 
 detect_service = DetectService()
