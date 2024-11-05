@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 
 import numpy as np
@@ -8,7 +9,7 @@ import torch
 from common.constants import ALL_LABELS_DESC_DICT
 from config import Config, settings
 from service.db import update_sql, build_create, query_list, query_sql, build_update
-from service.face import video_fp_feature, hdr, infer_video_model
+from service.face import video_fp_feature, hdr, infer_video_model, hdr_optimize
 from service.inference import inference_service
 from service.openface import openface_service
 
@@ -246,7 +247,13 @@ class DetectService:
         fp_filename = batch_dir / "fp_feature.csv"
         video_fp_feature(video_path, fp_filename)
         hdr_path = batch_dir / "video_capture.csv"
-        hdr(fp_filename, hdr_path)
+        start_time = time.time()
+        # hdr(fp_filename, hdr_path)
+        hdr_optimize(fp_filename, hdr_path)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"hdr操作用时：{execution_time}秒")
+
         min_video_score, video_scores = infer_video_model(hdr_path)
 
         print(f"视频频模型结束... video_scores: {video_scores}")

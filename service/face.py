@@ -135,21 +135,105 @@ def hdr(video_new_path, hdr_path):
     df1.to_csv(hdr_path)
 
 
+# 提取HDR特征优化
+def hdr_optimize(video_new_path, hdr_path):
+    # 设定常量
+    m = [10, 20, 30, 40, 50]
+    x0, y0 = 5, 73
+
+    # 读取CSV数据
+    df = pd.read_csv(video_new_path)
+
+    # 获取数据行数
+    num_rows = df.shape[0]
+
+    # 初始化结果容器
+    results = []
+
+    # 计算每个窗口的HDR特征
+    for i in range(0, num_rows - 101, 10):
+        print(f"i-------------------------------------------------{i}")
+        # 记录每个窗口的特征
+        window_features = []
+
+        # 对每一个时间间隔进行遍历
+        for j in m:
+            # 对每一对(x, y)进行遍历
+            for k in range(68):
+                # 定义累计变量
+                r1 = r2 = r3 = r4 = r5 = r6 = 0
+                r7 = r8 = r9 = r10 = r11 = r12 = 0
+                num = 0
+
+                # 设置 a 和 b 的初始值
+                a = i + j
+                b = i
+
+                # 遍历数据并计算每个时间点的x, y差异
+                while a <= i + 100:
+                    x = df.iloc[a, x0 + k] - df.iloc[b, x0 + k]
+                    y = df.iloc[a, y0 + k] - df.iloc[b, y0 + k]
+                    b += 10
+                    a = b + j
+
+                    # 累加x, y的分类计数
+                    r1 += x < -20
+                    r2 += -20 <= x < -10
+                    r3 += -10 <= x < 0
+                    r4 += 0 <= x < 10
+                    r5 += 10 <= x < 20
+                    r6 += x >= 20
+
+                    r7 += y < -20
+                    r8 += -20 <= y < -10
+                    r9 += -10 <= y < 0
+                    r10 += 0 <= y < 10
+                    r11 += 10 <= y < 20
+                    r12 += y >= 20
+
+                    num += 1
+                # 计算比例
+                if num > 0:
+                    window_features.extend(
+                        [
+                            r1 / num,
+                            r2 / num,
+                            r3 / num,
+                            r4 / num,
+                            r5 / num,
+                            r6 / num,
+                            r7 / num,
+                            r8 / num,
+                            r9 / num,
+                            r10 / num,
+                            r11 / num,
+                            r12 / num,
+                        ]
+                    )
+
+        results.append(window_features)
+    df1 = pd.DataFrame(np.array(results))
+    # 将最终结果保存到csv文件
+    df1.to_csv(hdr_path)
+
+
 # 将HDR特征送入模型中的出结果
 def infer_video_model(hdr_path, model_class=None):
     K.clear_session()
+
     def rmse(y_pred, y_true):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))
+
     if model_class:
         checkpoint_filepath = rf"weights/tcn_{model_class.lower()}.keras"
         custom_objects = {"TCN": TCN, "rmse": rmse}
     else:
         checkpoint_filepath = "weights/vidio_1.h5"
         custom_objects = {"TCN": TCN, "mse": "mse"}
-    print(f"checkpoint_filepath: {checkpoint_filepath}, custom_objects: {custom_objects}")
-    tcn = tf.keras.models.load_model(
-        checkpoint_filepath, custom_objects=custom_objects
+    print(
+        f"checkpoint_filepath: {checkpoint_filepath}, custom_objects: {custom_objects}"
     )
+    tcn = tf.keras.models.load_model(checkpoint_filepath, custom_objects=custom_objects)
     df = pd.read_csv(hdr_path, index_col=0)
     time_step = 10
 
@@ -180,4 +264,3 @@ def infer_video_model(hdr_path, model_class=None):
 
 if __name__ == "__main__":
     pass
-
