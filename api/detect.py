@@ -55,19 +55,33 @@ class DetectAPI:
                 video_path = Path(f"{TEMP_PATH}/video/{batch_no}/{video_name}")
                 if batch_no and video_name:
                     logger.info(f"开始执行视频检测定时任务: {task}")
-                    result = asyncio.run(
-                        self.detect_service.video_detect_v2(video_path, batch_no)
-                    )
-                    print(f"result: {result}")
-                    data_dict = {
-                        "id": task["id"],
-                        "point": result["point"],
-                        "diagnosis": result["diagnosis"],
-                        "depressed_score": result["depressed_score"],
-                        "depressed_state": result["depressed_state"],
-                        "depressed_score_list": result["depressed_score_list"],
-                        "current_step": 3,
-                    }
+                    try:
+                        result = asyncio.run(
+                            self.detect_service.video_detect_v2(video_path, batch_no)
+                        )
+                        print(f"result: {result}")
+                        data_dict = {
+                            "id": task["id"],
+                            "point": result["point"],
+                            "diagnosis": result["diagnosis"],
+                            "depressed_score": result["depressed_score"],
+                            "depressed_state": result["depressed_state"],
+                            "depressed_score_list": result["depressed_score_list"],
+                            "current_step": 3,
+                        }
+                    except Exception as e:
+                        print(f"执行视频检测定时任务{task}异常: {e}")
+                        data_dict = {
+                            "id": task["id"],
+                            "point": 0,
+                            "diagnosis": "F32",
+                            "depressed_score": 0,
+                            "depressed_state": "正常",
+                            "depressed_score_list": "",
+                            "current_step": 3,
+                            "comment": "任务处理异常",
+                        }
+
                     self.detect_service.udpate_video_detect_task(data_dict)
 
         self.video_detect_job_flag = False
