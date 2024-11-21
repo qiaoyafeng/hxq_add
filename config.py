@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     MODEL_MULTI_CLASS_WEIGHTS_PATH: str = "weights/multi_class_model.pt"
     MULTI_CLASS_METHOD: str = "one2one"
 
+    # SMS
+    IS_SEND_SMS: bool = True
+    SMS_HOST: str = "https://sms.haoxinqing.cn"
+
     class Config:
         env_file = ".env"
 

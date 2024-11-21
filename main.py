@@ -7,6 +7,7 @@ from pathlib import Path
 
 import requests
 import uvicorn
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from fastapi.openapi.docs import get_swagger_ui_html
 
@@ -53,16 +54,22 @@ templates = Jinja2Templates(directory="templates")
 TEMP_PATH = Config.get_temp_path()
 
 scheduler = BackgroundScheduler()
-
+async_scheduler = AsyncIOScheduler()
 
 @app.on_event("startup")
 async def startup_event():
+    scheduler.start()
+    async_scheduler.start()
     if settings.IS_SCHEDULER:
-        scheduler.start()
         scheduler.add_job(detect_api.video_detect_job, "interval", seconds=5)
         scheduler.add_job(
             detect_api.create_video_detect_cover_image_job, "interval", seconds=20
         )
+    if settings.IS_SEND_SMS:
+        async_scheduler.add_job(
+            detect_api.send_sms_job, "interval", seconds=10
+        )
+
 
 
 @app.get("/docs", include_in_schema=False)

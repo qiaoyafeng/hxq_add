@@ -370,14 +370,19 @@ class DetectService:
         return tasks
 
     def get_video_detect_task_by_step(self, step: int):
-        sql = f"SELECT id, batch_no , video , del_status, create_time  FROM video_detect_task vdt WHERE current_step = {step}"
+        sql = f"SELECT *  FROM video_detect_task vdt WHERE current_step = {step}"
         tasks = query_sql(sql)
         return tasks
 
     def get_video_detect_task_by_batch_no(self, batch_no: str):
-        sql = f"SELECT id, batch_no , video , point, diagnosis, depressed_score, depressed_state, depressed_score_list, current_step, del_status, create_time  FROM video_detect_task vdt WHERE batch_no = '{batch_no}'"
+        sql = f"SELECT * FROM video_detect_task vdt WHERE batch_no = '{batch_no}'"
         tasks = query_sql(sql)
         return tasks[0] if tasks else None
+
+    def get_video_detect_task_by_sms_status(self, sms_status: int):
+        sql = f"SELECT * FROM video_detect_task vdt WHERE sms_status = {sms_status}  AND phone IS NOT NULL AND  phone !=''"
+        tasks = query_sql(sql)
+        return tasks
 
     def udpate_video_detect_task(self, data_dict: dict):
         update_sql(build_update(data_dict, "video_detect_task"))

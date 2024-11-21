@@ -5,6 +5,7 @@ from common.utils import save_nth_frame
 from config import Config
 from service.detect import detect_service
 from service.log import logger
+from service.common import notice_service
 
 TEMP_PATH = Config.get_temp_path()
 
@@ -12,6 +13,7 @@ TEMP_PATH = Config.get_temp_path()
 class DetectAPI:
     def __init__(self):
         self.detect_service = detect_service
+        self.notice_service = notice_service
         self.video_detect_job_flag = False
 
     async def image_detect(self, image_paths, batch_no, is_multi_class=0):
@@ -100,6 +102,31 @@ class DetectAPI:
                 data_dict = {
                     "id": task["id"],
                     "cover_image": first_frame_name,
+                }
+                self.detect_service.udpate_video_detect_task(data_dict)
+
+    async def send_sms_job(self):
+        unsent_sms_flag = 0
+        sent_sms_success_flag = 1
+        sent_sms_fail_flag = 1
+        task_complete_flag = 3
+        unsent_sms_tasks = self.detect_service.get_video_detect_task_by_sms_status(unsent_sms_flag)
+        for task in unsent_sms_tasks:
+            if not task["del_status"] and task["current_step"] == task_complete_flag:
+                task_id = task["id"]
+                phone = task["phone"]
+                batch_no = task["batch_no"]
+                create_time = task["create_time"].to_pydatetime().strftime("%Y-%m-%d %H:%M:%S")
+                logger.info(f"开始执行发送短信通知任务: task_id: {task_id}, phone: {phone}, batch_no: {batch_no}, create_time: {create_time}")
+                info = {"task_id": task_id, "batch_no": batch_no, "create_time": create_time}
+                send_res = await self.notice_service.sms(phone, info)
+                if send_res["code"] == 200:
+                    sms_status = sent_sms_success_flag
+                else:
+                    sms_status = sent_sms_fail_flag
+                data_dict = {
+                    "id": task["id"],
+                    "sms_status": sms_status,
                 }
                 self.detect_service.udpate_video_detect_task(data_dict)
 
