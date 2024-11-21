@@ -21,7 +21,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from api.detect import detect_api
 from api.file import file_api
-from api.schemas import ImageDetectRequest
+from api.schemas import ImageDetectRequest, BindPhoneRequest
 from utils import get_resp, replace_special_character, build_resp, init_seed
 from config import Config, settings
 
@@ -224,11 +224,8 @@ async def create_video_detect_task(
     dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)
     url, path, name = await file_api.uploadfile(file, dir_path)
-    task_id = 100
-    task = await detect_api.create_video_detect_task(name, batch_no)
-    return build_resp(
-        0, {"task_id": task_id, "batch_no": batch_no}, message="create task success"
-    )
+    await detect_api.create_video_detect_task(name, batch_no)
+    return build_resp(0, {"batch_no": batch_no}, message="create task success")
 
 
 @app.get("/api/get_video_detect_task", summary="获取视频检测任务")
@@ -307,6 +304,29 @@ async def get_all_video_detect_tasks():
         {"task_list": task_list},
         message="get task success",
     )
+
+
+@app.post("/api/bind_phone_to_task", summary="绑定手机号到任务")
+async def bind_phone_to_task(request: BindPhoneRequest):
+    batch_no = request.batch_no
+    phone = request.phone
+    print(f"bind_phone_to_task: batch_no:{batch_no}, phone: {phone}")
+
+    task = await detect_api.get_video_detect_task_by_batch_no(batch_no)
+    if task:
+        task_id = task["id"]
+        await detect_api.bind_phone_to_task(task_id, phone)
+        return build_resp(
+            0,
+            {"task_id": task_id, "batch_no": batch_no, "phone": phone},
+            message="bind success",
+        )
+    else:
+        return build_resp(
+            200,
+            {"task_id": "", "batch_no": batch_no, "phone": phone},
+            message="task does not exist.",
+        )
 
 
 if __name__ == "__main__":

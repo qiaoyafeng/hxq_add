@@ -103,5 +103,9 @@ class DetectAPI:
                 }
                 self.detect_service.udpate_video_detect_task(data_dict)
 
+    async def bind_phone_to_task(self, task_id, phone):
+        task = await self.detect_service.bind_phone_to_task(task_id, phone)
+        return task
+
 
 detect_api = DetectAPI()

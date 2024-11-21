@@ -11,3 +11,7 @@ class ImageDetectRequest(BaseModel):
     image2: bytes = File()
     image3: bytes = File()
 
+
+class BindPhoneRequest(BaseModel):
+    batch_no: str
+    phone: str

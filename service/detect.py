@@ -383,5 +383,13 @@ class DetectService:
         update_sql(build_update(data_dict, "video_detect_task"))
         return
 
+    async def bind_phone_to_task(self, task_id, phone):
+        task_dict = {
+            "id": task_id,
+            "phone": phone,
+        }
+        update_sql(build_update(task_dict, "video_detect_task"))
+        return task_dict
+
 
 detect_service = DetectService()
