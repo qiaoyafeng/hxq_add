@@ -15,7 +15,7 @@ class NoticeService:
 
     # 短信通知
     async def sms(self, phone, info):
-        data = {"mobile": phone, "time": info["create_time"].split(" ")[0], "batch": info["batch_no"]}
+        data = {"mobile": phone, "time": info["create_time"], "batch": info["batch_no"]}
         print(f"send_sms data: {data}")
         res = requests.post(url=self.sms_url, data=data, headers=self.headers)
         r_dict = res.json()

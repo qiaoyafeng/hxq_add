@@ -116,7 +116,7 @@ class DetectAPI:
                 task_id = task["id"]
                 phone = task["phone"]
                 batch_no = task["batch_no"]
-                create_time = task["create_time"].to_pydatetime().strftime("%Y-%m-%d %H:%M:%S")
+                create_time = task["create_time"].to_pydatetime().strftime("%Y-%m-%d %H:%M")
                 logger.info(f"开始执行发送短信通知任务: task_id: {task_id}, phone: {phone}, batch_no: {batch_no}, create_time: {create_time}")
                 info = {"task_id": task_id, "batch_no": batch_no, "create_time": create_time}
                 send_res = await self.notice_service.sms(phone, info)
