@@ -228,6 +228,7 @@ async def create_video_detect_task(
 ):
     print(f"create_video_detect_task: file:{file}")
     batch_no = f"{uuid.uuid4().hex}"
+    batch_no = batch_no[10]
     dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)
     url, path, name = await file_api.uploadfile(file, dir_path)
