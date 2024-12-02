@@ -15,6 +15,7 @@ class DetectAPI:
         self.detect_service = detect_service
         self.notice_service = notice_service
         self.video_detect_job_flag = False
+        self.audio_detect_job_flag = False
 
     async def image_detect(self, image_paths, batch_no, is_multi_class=0):
         if is_multi_class:
@@ -134,5 +135,57 @@ class DetectAPI:
         task = await self.detect_service.bind_phone_to_task(task_id, phone)
         return task
 
+    async def create_audio_detect_task(self, audio, batch_no):
+        task = await self.detect_service.create_audio_detect_task(audio, batch_no)
+        return task
+
+    def audio_detect_job(self):
+        if self.audio_detect_job_flag:
+            return
+        self.audio_detect_job_flag = True
+        tasks = self.detect_service.get_audio_detect_task_by_step(0)
+        if len(tasks) == 0:
+            self.audio_detect_job_flag = False
+            return
+        for task in tasks:
+            if not task["del_status"]:
+                audio_name = task["audio"]
+                batch_no = task["batch_no"]
+                audio_path = Path(f"{TEMP_PATH}/audio/{batch_no}/{audio_name}")
+                if batch_no and audio_name:
+                    logger.info(f"开始执行音频检测定时任务: {task}")
+                    try:
+                        result = asyncio.run(
+                            self.detect_service.audio_detect(audio_path, batch_no)
+                        )
+                        print(f"result: {result}")
+                        data_dict = {
+                            "id": task["id"],
+                            "point": result["point"],
+                            "diagnosis": result["diagnosis"],
+                            "depressed_score": result["depressed_score"],
+                            "depressed_state": result["depressed_state"],
+                            "depressed_score_list": result["depressed_score_list"],
+                            "current_step": 3,
+                        }
+                    except Exception as e:
+                        print(f"执行音频检测定时任务{task}异常: {e}")
+                        data_dict = {
+                            "id": task["id"],
+                            "point": 0,
+                            "diagnosis": "F32",
+                            "depressed_score": 0,
+                            "depressed_state": "正常",
+                            "depressed_score_list": "",
+                            "current_step": 3,
+                            "comment": "任务处理异常",
+                        }
+
+                    self.detect_service.udpate_audio_detect_task(data_dict)
+        self.audio_detect_job_flag = False
+
+    async def get_audio_detect_task_by_batch_no(self, batch_no):
+        task = self.detect_service.get_audio_detect_task_by_batch_no(batch_no)
+        return task
 
 detect_api = DetectAPI()

@@ -65,11 +65,14 @@ async def startup_event():
         scheduler.add_job(
             detect_api.create_video_detect_cover_image_job, "interval", seconds=20
         )
+        scheduler.add_job(
+            detect_api.audio_detect_job, "interval", seconds=20
+        )
+
     if settings.IS_SEND_SMS:
         async_scheduler.add_job(
             detect_api.send_sms_job, "interval", seconds=10
         )
-
 
 
 @app.get("/docs", include_in_schema=False)
@@ -336,6 +339,57 @@ async def bind_phone_to_task(request: BindPhoneRequest):
             message="task does not exist.",
         )
 
+
+@app.post("/api/create_audio_detect_task", summary="创建音频检测任务")
+async def create_audio_detect_task(
+    file: UploadFile = File(),
+):
+    print(f"create_audio_detect_task: file:{file}")
+    batch_no = f"{uuid.uuid4().hex}"
+    batch_no = batch_no[:10]
+    dir_path = Path(f"{TEMP_PATH}/audio/{batch_no}")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    url, path, name = await file_api.uploadfile(file, dir_path)
+    await detect_api.create_audio_detect_task(name, batch_no)
+    return build_resp(0, {"batch_no": batch_no}, message="create task success")
+
+
+@app.get("/api/get_audio_detect_task", summary="获取音频检测任务")
+async def get_audio_detect_task(
+    batch_no: str,
+):
+    print(f"get_audio_detect_task: task_id:{batch_no}")
+    task = await detect_api.get_audio_detect_task_by_batch_no(batch_no)
+    is_completed = 0
+    if task:
+        print(f"get_audio_detect_task task: {task}")
+        if task["current_step"] == 3:
+            is_completed = 1
+            task_info = {
+                "main_disease": {
+                    "diagnosis": task["diagnosis"],
+                    "point": task["point"],
+                    "name": "抑郁性障碍",
+                },
+                "detect": {
+                    "depressed_id": 0,
+                    "depressed_state": task["diagnosis"],
+                    "depressed_index": task["depressed_score"],
+                    "depressed_score": task["depressed_score"],
+                    "depressed_score_list": task["depressed_score_list"],
+                },
+                "detect_list": [],
+            }
+        else:
+            task_info = {}
+    else:
+        task_info = {}
+
+    return build_resp(
+        0,
+        {"batch_no": batch_no, "is_completed": is_completed, "task_info": task_info},
+        message="get audio task success",
+    )
 
 if __name__ == "__main__":
     init_seed()

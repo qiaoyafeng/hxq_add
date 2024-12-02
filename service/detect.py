@@ -8,6 +8,7 @@ import torch
 
 from common.constants import ALL_LABELS_DESC_DICT
 from config import Config, settings
+from service.audio import infer_audio_model, audio_feature, audio_feature_txt2csv
 from service.db import update_sql, build_create, query_list, query_sql, build_update
 from service.face import video_fp_feature, hdr, infer_video_model, hdr_optimize
 from service.inference import inference_service
@@ -396,5 +397,76 @@ class DetectService:
         update_sql(build_update(task_dict, "video_detect_task"))
         return task_dict
 
+    async def create_audio_detect_task(self, audio, batch_no):
+        task_dict = {
+            "batch_no": batch_no,
+            "audio": audio,
+        }
+        update_sql(build_create(task_dict, "audio_detect_task"))
+        return task_dict
+
+    def get_audio_detect_task_by_step(self, step: int):
+        sql = f"SELECT *  FROM audio_detect_task vdt WHERE current_step = {step}"
+        tasks = query_sql(sql)
+        return tasks
+
+    async def audio_detect(self, audio_path, batch_no):
+        start_time = time.time()
+        batch_dir = Path(f"{TEMP_PATH}/audio/{batch_no}")
+        audio_feature_txt = batch_dir / 'audio_feature.txt'
+        audio_feature(audio_path, audio_feature_txt)
+        audio_feature_csv = batch_dir / 'audio_feature.csv'
+        audio_feature_txt2csv(audio_feature_txt, audio_feature_csv)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"audio feature 操作用时：{execution_time}秒")
+
+        min_audio_score, audio_scores = infer_audio_model(audio_feature_csv)
+        print(f"音频模型结束... audio_scores: {audio_scores}, min_audio_score: {min_audio_score}")
+        # 转换为百分制
+        centesimal_min_audio_score = min_audio_score / 24 * 100
+        centesimal_audio_scores = [int((x / 24) * 100) for x in audio_scores]
+        threshold = 35
+        count_gt_threshold = sum(1 for x in centesimal_audio_scores if x > threshold)
+
+        if count_gt_threshold > 3:
+            depressed_id = 1
+            depressed_state = "抑郁"
+            depressed_score = int(
+                sum(x for x in centesimal_audio_scores if x > threshold)
+                / count_gt_threshold
+            )
+        elif 0 < count_gt_threshold <= 3:
+            depressed_id = 0
+            depressed_state = "正常，有抑郁风险。"
+            depressed_score = int(
+                sum(centesimal_audio_scores) / len(centesimal_audio_scores)
+            )
+        else:
+            depressed_id = 0
+            depressed_state = "正常"
+            depressed_score = int(
+                sum(centesimal_audio_scores) / len(centesimal_audio_scores)
+            )
+
+        detect_dict = {
+            "point": count_gt_threshold,
+            "diagnosis": "F32",
+            "depressed_id": depressed_id,
+            "depressed_state": depressed_state,
+            "depressed_index": depressed_score,
+            "depressed_score": depressed_score,
+            "depressed_score_list": centesimal_audio_scores,
+        }
+        return detect_dict
+
+    def udpate_audio_detect_task(self, data_dict: dict):
+        update_sql(build_update(data_dict, "audio_detect_task"))
+        return
+
+    def get_audio_detect_task_by_batch_no(self, batch_no: str):
+        sql = f"SELECT * FROM audio_detect_task vdt WHERE batch_no = '{batch_no}'"
+        tasks = query_sql(sql)
+        return tasks[0] if tasks else None
 
 detect_service = DetectService()
