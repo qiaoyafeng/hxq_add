@@ -225,6 +225,14 @@ async def vue_video_detect(
     return build_resp(0, {"batch_no": batch_no, "detect": detect_dict})
 
 
+@app.post("/api/create_batch_no", summary="创建批次号")
+async def create_batch_no():
+    print(f"create_video_detect_task")
+    batch_no = f"{uuid.uuid4().hex}"
+    batch_no = batch_no[:10]
+    return build_resp(0, {"batch_no": batch_no}, message="create batch_no success")
+
+
 @app.post("/api/create_video_detect_task", summary="创建视频检测任务")
 async def create_video_detect_task(
     file: UploadFile = File(),
@@ -342,11 +350,12 @@ async def bind_phone_to_task(request: BindPhoneRequest):
 
 @app.post("/api/create_audio_detect_task", summary="创建音频检测任务")
 async def create_audio_detect_task(
-    file: UploadFile = File(),
+    file: UploadFile = File(), batch_no: str = ""
 ):
     print(f"create_audio_detect_task: file:{file}")
-    batch_no = f"{uuid.uuid4().hex}"
-    batch_no = batch_no[:10]
+    if not batch_no:
+        batch_no = f"{uuid.uuid4().hex}"
+        batch_no = batch_no[:10]
     dir_path = Path(f"{TEMP_PATH}/audio/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)
     url, path, name = await file_api.uploadfile(file, dir_path)
