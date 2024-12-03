@@ -23,8 +23,6 @@ class FileService:
     # 上传文件
     async def uploadfile(self, file: UploadFile, dir_path=None):
         suffix = file.filename.split(".")[-1]
-        if suffix == "blob":
-            suffix = "mp4"
         file_name = f"{uuid.uuid4().hex}.{suffix}"
         file_path = f"{dir_path}/{file_name}" if dir_path else f"{TEMP_PATH}/{file_name}"
         local_url = f"{settings.BASE_DOMAIN}/get_file/{file_name}"

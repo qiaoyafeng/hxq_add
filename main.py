@@ -235,14 +235,20 @@ async def create_batch_no():
 
 @app.post("/api/create_video_detect_task", summary="创建视频检测任务")
 async def create_video_detect_task(
-    file: UploadFile = File(),
+    file: UploadFile = File(), batch_no: str = ""
 ):
     print(f"create_video_detect_task: file:{file}")
-    batch_no = f"{uuid.uuid4().hex}"
-    batch_no = batch_no[:10]
+    if not batch_no:
+        batch_no = f"{uuid.uuid4().hex}"
+        batch_no = batch_no[:10]
     dir_path = Path(f"{TEMP_PATH}/video/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)
-    url, path, name = await file_api.uploadfile(file, dir_path)
+    if file.filename.lower().endswith("mp4"):
+        url, path, name = await file_api.uploadfile(file, dir_path)
+    else:
+        url, path, name = await file_api.uploadfile(file)
+        name = f"{name.split('.')[0]}.mp4"
+        copy_file(path, dir_path / name)
     await detect_api.create_video_detect_task(name, batch_no)
     return build_resp(0, {"batch_no": batch_no}, message="create task success")
 
