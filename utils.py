@@ -3,6 +3,7 @@ import random
 import re
 import shutil
 
+import librosa
 import numpy as np
 import requests
 import torch
@@ -88,3 +89,8 @@ def init_seed(manual_seed=1):
     torch.cuda.manual_seed_all(manual_seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def get_audio_duration(file_path):
+    duration = librosa.get_duration(path=file_path)
+    return duration

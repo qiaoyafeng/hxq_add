@@ -9,10 +9,11 @@ from tcn import TCN
 
 
 # 通过openSmile提取音频特征
-def audio_feature(audio_path, audio_feature_txt):
+def audio_feature(audio_path, audio_feature_txt, start=0, end=-1):
     print(
-        f"audio_Feature: audio_path:{audio_path},audio_feature_txt: {audio_feature_txt} ......"
+        f"audio_Feature: audio_path:{audio_path},audio_feature_txt: {audio_feature_txt} , start: {start}, end: {end} ......"
     )
+    start, end = str(start), str(end)
     if os.name == "nt":
         feature_command = r"D:/Programs/opensmile-3.0-win-x64/bin/SMILExtract.exe"
         args = [
@@ -22,6 +23,10 @@ def audio_feature(audio_path, audio_feature_txt):
             audio_path,
             "-O",
             audio_feature_txt,
+            "-start",
+            start,
+            "-end",
+            end,
         ]
     else:
         feature_command = "SMILExtract"
@@ -63,26 +68,17 @@ def audio_feature_txt2csv(audio_feature_txt, audio_feature_csv):
 
 
 # 将音频特征送入模型中的出结果
-def infer_audio_model(audio_feature_csv):
+def infer_audio_model(audio_feature_csv, weight_file="weights/audio_1.h5"):
     tcn = tf.keras.models.load_model(
-        "weights/audio_1.h5", custom_objects={"TCN": TCN, "mse": "mse"}
+        weight_file, custom_objects={"TCN": TCN, "mse": "mse"}
     )
     df = pd.read_csv(audio_feature_csv, index_col=0)
-    time_step = 50
-    x_Test = []
-    j = 0
-    while j <= df.shape[0]:
-        x_Test.append(df.iloc[j : j + time_step, :])
-        j = j + time_step
-
-    X_TEST = [x.values for x in x_Test]
-    X_TEST = np.array(X_TEST)
-
-    a, b, c = X_TEST.shape[0], X_TEST.shape[1], X_TEST.shape[2]
-    x_test_normal = X_TEST.reshape(-1, c)
+    x_test = df.to_numpy()
+    print(f"infer_video_model x_test shape: {x_test.shape}")
+    x_test_normal = x_test.reshape(-1, df.shape[1])
     min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-1, 1))
     x_test_minmax = min_max_scaler.fit_transform(x_test_normal)
-    x_test = x_test_minmax.reshape(a, b, c)
+    x_test = x_test_minmax.reshape(df.shape[0], -1, df.shape[1])
     predict = tcn.predict(x_test)
     predict_list = []
     for i in range(len(predict)):
@@ -93,4 +89,9 @@ def infer_audio_model(audio_feature_csv):
 
 
 if __name__ == "__main__":
-    pass
+    audio_path = r"E:\myworkspace\hxq_ade\temp\audio\aa8afc70f9\7bca7433349f4203a894e76cb9e7db54.wav"
+    audio_feature_txt = "audio_feature_test.txt"
+    audio_feature(audio_path, audio_feature_txt, start=0, end=10)
+    audio_feature_csv = r"E:\myworkspace\hxq_ade\temp\audio\1658c1e6e5\audio_feature.csv"
+    audio_feature_csv = r"E:\myworkspace\hxq_ade\temp\audio\a2f65ef9fc\audio_feature.csv"
+    # infer_audio_model(audio_feature_csv, weight_file=r"E:\myworkspace\hxq_ade\weights\audio_1.h5")

@@ -13,6 +13,7 @@ from service.db import update_sql, build_create, query_list, query_sql, build_up
 from service.face import video_fp_feature, hdr, infer_video_model, hdr_optimize
 from service.inference import inference_service
 from service.openface import openface_service
+from utils import get_audio_duration
 
 TEMP_PATH = Config.get_temp_path()
 
@@ -414,7 +415,13 @@ class DetectService:
         start_time = time.time()
         batch_dir = Path(f"{TEMP_PATH}/audio/{batch_no}")
         audio_feature_txt = batch_dir / 'audio_feature.txt'
-        audio_feature(audio_path, audio_feature_txt)
+        segment_duration = 10
+        audio_duration = get_audio_duration(audio_path)
+        segment_count = int(audio_duration // segment_duration)
+        for i in range(segment_count):
+            start = i * segment_duration
+            end = start + segment_duration
+            audio_feature(audio_path, audio_feature_txt, start=start,end=end)
         audio_feature_csv = batch_dir / 'audio_feature.csv'
         audio_feature_txt2csv(audio_feature_txt, audio_feature_csv)
         end_time = time.time()
