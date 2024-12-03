@@ -7,6 +7,7 @@ import librosa
 import numpy as np
 import requests
 import torch
+from pydub import AudioSegment
 
 
 def base64_encode(stream):
@@ -94,3 +95,18 @@ def init_seed(manual_seed=1):
 def get_audio_duration(file_path):
     duration = librosa.get_duration(path=file_path)
     return duration
+
+
+def convert_audio_to_wav(input_file, output_file):
+    """
+    将 音频 文件转换为 WAV 格式。
+
+    :param input_file: 输入音频文件路径
+    :param output_file: 输出 WAV 文件路径
+    """
+    # 加载 MP3 文件
+    audio = AudioSegment.from_file(input_file)
+    # 导出为 WAV 文件
+    audio.export(output_file, format="wav")
+    print(f"成功将 {input_file} 转换为 {output_file}")
+

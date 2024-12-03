@@ -23,7 +23,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from api.detect import detect_api
 from api.file import file_api
 from api.schemas import ImageDetectRequest, BindPhoneRequest
-from utils import get_resp, replace_special_character, build_resp, init_seed
+from utils import get_resp, replace_special_character, build_resp, init_seed, copy_file, convert_audio_to_wav
 from config import Config, settings
 
 app = FastAPI(
@@ -358,7 +358,12 @@ async def create_audio_detect_task(
         batch_no = batch_no[:10]
     dir_path = Path(f"{TEMP_PATH}/audio/{batch_no}")
     dir_path.mkdir(parents=True, exist_ok=True)
-    url, path, name = await file_api.uploadfile(file, dir_path)
+    if file.filename.lower().endswith("wav"):
+        url, path, name = await file_api.uploadfile(file, dir_path)
+    else:
+        url, path, name = await file_api.uploadfile(file)
+        name = f"{name.split('.')[0]}.wav"
+        convert_audio_to_wav(path, dir_path / name)
     await detect_api.create_audio_detect_task(name, batch_no)
     return build_resp(0, {"batch_no": batch_no}, message="create task success")
 

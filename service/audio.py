@@ -90,6 +90,7 @@ def infer_audio_model(audio_feature_csv, weight_file="weights/audio_1.h5"):
 
 if __name__ == "__main__":
     audio_path = r"E:\myworkspace\hxq_ade\temp\audio\aa8afc70f9\7bca7433349f4203a894e76cb9e7db54.wav"
+    audio_path = r"E:\myworkspace\hxq_ade\temp\audio\c104604ce6\3600763039e94c71838ff04cbc79c2a5.mp3.wav"
     audio_feature_txt = "audio_feature_test.txt"
     audio_feature(audio_path, audio_feature_txt, start=0, end=10)
     audio_feature_csv = r"E:\myworkspace\hxq_ade\temp\audio\1658c1e6e5\audio_feature.csv"
